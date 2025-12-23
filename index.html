@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whisper | Private Messaging</title>
+    <!-- Montserrat Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- PeerJS Library for P2P connection -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --text-primary: #ffffff;
+            --accent-gradient: linear-gradient(45deg, #ff00cc, #3333ff, #00d4ff, #ff00cc);
+            --bubble-bg: #1a1a1a;
+            --modal-bg: #0a0a0a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #222;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        header h1 {
+            font-weight: 600;
+            letter-spacing: 2px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        .status-dot {
+            height: 8px;
+            width: 8px;
+            background-color: #555;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .status-online { background-color: #00ff88; box-shadow: 0 0 10px #00ff88; }
+
+        /* Messages Area */
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+            color: var(--text-primary);
+        }
+
+        .message.sent {
+            align-self: flex-end;
+            background: #333;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.received {
+            align-self: flex-start;
+            background: var(--bubble-bg);
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Modal Overlay */
+        #p2p-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            background: var(--modal-bg);
+            border: 1px solid #333;
+            padding: 30px;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .modal-content h2 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .code-box {
+            background: #111;
+            padding: 15px;
+            border-radius: 12px;
+            font-family: monospace;
+            font-size: 1.2rem;
+            margin: 15px 0;
+            border: 1px dashed #444;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #ff00cc;
+            letter-spacing: 2px;
+        }
+
+        .code-box:hover { border-color: #ff00cc; background: #161616; }
+
+        .btn {
+            background: var(--text-primary);
+            color: black;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-ghost {
+            background: transparent;
+            color: white;
+            border: 1px solid #444;
+            margin-top: 20px;
+        }
+
+        /* Input Area */
+        .input-wrapper {
+            padding: 20px;
+            padding-bottom: 10px;
+            position: relative;
+        }
+
+        .input-container {
+            position: relative;
+            background: #000;
+            border-radius: 30px;
+            padding: 2px;
+        }
+
+        .input-container::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: var(--accent-gradient);
+            background-size: 400%;
+            z-index: -1;
+            border-radius: 32px;
+            filter: blur(8px);
+            opacity: 0.7;
+            animation: fluidGradient 8s linear infinite;
+        }
+
+        @keyframes fluidGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        input {
+            width: 100%;
+            background: #000;
+            border: none;
+            outline: none;
+            color: white;
+            padding: 16px 25px;
+            border-radius: 30px;
+            font-size: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 10px 20px 25px;
+            text-align: center;
+        }
+
+        footer p {
+            font-size: 0.7rem;
+            color: var(--text-primary);
+            max-width: 280px;
+            margin: 0 auto;
+            line-height: 1.4;
+            opacity: 0.6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- P2P Setup Modal -->
+    <div id="p2p-modal">
+        <div class="modal-content">
+            <h2>Whisper P2P</h2>
+            <p style="font-size: 0.8rem; opacity: 0.7;">Your secret connection code:</p>
+            <div class="code-box" id="my-code" onclick="copyCode()">...initializing...</div>
+            <p style="font-size: 0.7rem; color: #ff00cc; margin-bottom: 20px;">Tap code to copy and share with a friend</p>
+            
+            <input type="text" id="peer-code-input" placeholder="Paste Friend's Code" 
+                   style="border: 1px solid #333; margin-bottom: 10px; background: #0a0a0a; width: 100%; padding: 12px; border-radius: 12px; color: white;">
+            <button class="btn" id="connect-btn" onclick="connectToPeer()">Connect to Friend</button>
+            <button class="btn btn-ghost" onclick="closeModal()">Close & View Chat</button>
+        </div>
+    </div>
+
+    <header>
+        <h1><span id="status-dot" class="status-dot"></span> Whisper</h1>
+    </header>
+
+    <main id="chat-container">
+        <div class="message received">
+            System: Waiting for a P2P connection...
+        </div>
+    </main>
+
+    <div class="input-wrapper">
+        <div class="input-container">
+            <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
+        </div>
+    </div>
+
+    <footer>
+        <p>Whisper is private by design. End-to-end encrypted. No tracking. No data selling.</p>
+    </footer>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const msgInput = document.getElementById('msg-input');
+        const modal = document.getElementById('p2p-modal');
+        const statusDot = document.getElementById('status-dot');
+        const connectBtn = document.getElementById('connect-btn');
+        
+        let peer;
+        let conn;
+
+        // 1. Initialize PeerJS with explicit configuration to avoid SDP errors
+        function initPeer() {
+            const shortId = Math.random().toString(36).substr(2, 6).toUpperCase();
+            
+            // Adding public STUN servers helps with SDP negotiation in restricted environments
+            peer = new Peer('WSP-' + shortId, {
+                config: {
+                    'iceServers': [
+                        { url: 'stun:stun.l.google.com:19302' },
+                        { url: 'stun:stun1.l.google.com:19302' }
+                    ]
+                },
+                debug: 1
+            });
+
+            peer.on('open', (id) => {
+                document.getElementById('my-code').textContent = id;
+            });
+
+            // 2. Listen for incoming connections
+            peer.on('connection', (incomingConn) => {
+                conn = incomingConn;
+                setupChatListeners();
+            });
+
+            peer.on('error', (err) => {
+                console.error('Peer error:', err);
+                appendMessage("System Error: " + err.type, 'received');
+                connectBtn.disabled = false;
+                connectBtn.textContent = "Connect to Friend";
+            });
+        }
+
+        // 3. Connect to a friend
+        function connectToPeer() {
+            const peerId = document.getElementById('peer-code-input').value.trim();
+            if (!peerId) return;
+
+            connectBtn.disabled = true;
+            connectBtn.textContent = "Connecting...";
+
+            // Establish connection
+            conn = peer.connect(peerId, {
+                reliable: true
+            });
+            
+            setupChatListeners();
+        }
+
+        // 4. Setup Chat Event Listeners
+        function setupChatListeners() {
+            if (!conn) return;
+
+            conn.on('open', () => {
+                closeModal();
+                statusDot.classList.add('status-online');
+                appendMessage("System: Connected to peer securely.", 'received');
+                
+                // Reset button state
+                connectBtn.disabled = false;
+                connectBtn.textContent = "Connect to Friend";
+
+                // Receive data
+                conn.on('data', (data) => {
+                    appendMessage(data, 'received');
+                });
+            });
+
+            conn.on('close', () => {
+                statusDot.classList.remove('status-online');
+                appendMessage("System: Connection closed.", 'received');
+                conn = null;
+            });
+
+            conn.on('error', (err) => {
+                console.error('Connection error:', err);
+                appendMessage("System: Connection error occurred.", 'received');
+                connectBtn.disabled = false;
+                connectBtn.textContent = "Connect to Friend";
+            });
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            msgInput.focus();
+        }
+
+        function copyCode() {
+            const code = document.getElementById('my-code').textContent;
+            if(code.includes('.')) return;
+            
+            const el = document.createElement('textarea');
+            el.value = code;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            
+            const originalText = document.getElementById('my-code').textContent;
+            document.getElementById('my-code').textContent = "COPIED!";
+            setTimeout(() => {
+                document.getElementById('my-code').textContent = originalText;
+            }, 1000);
+        }
+
+        function appendMessage(text, type) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${type}`;
+            msgDiv.textContent = text;
+            chatContainer.appendChild(msgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Send Message
+        msgInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && msgInput.value.trim() !== '') {
+                const text = msgInput.value.trim();
+                
+                if (conn && conn.open) {
+                    conn.send(text);
+                    appendMessage(text, 'sent');
+                } else {
+                    appendMessage("System: No active connection. Open Whisper P2P to connect.", 'received');
+                }
+                
+                msgInput.value = '';
+            }
+        });
+
+        // Initialize on load
+        initPeer();
+    </script>
+</body>
+</html>
