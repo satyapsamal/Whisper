@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Whisper | Private Messaging</title>
     <!-- Montserrat Font -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
         :root {
             --bg-color: #000000;
             --text-primary: #ffffff;
-            --accent-gradient: linear-gradient(45deg, #ff00cc, #3333ff, #00d4ff, #ff00cc);
+            --accent-blue: #007aff; /* Premium iOS-style blue */
             --bubble-bg: #1a1a1a;
             --modal-bg: #0a0a0a;
         }
@@ -22,12 +22,13 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Montserrat', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-primary);
-            height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -35,30 +36,21 @@
 
         /* Header */
         header {
-            padding: 20px;
+            padding: 15px;
             text-align: center;
             border-bottom: 1px solid #222;
             background: rgba(0,0,0,0.8);
             backdrop-filter: blur(10px);
             z-index: 10;
+            flex-shrink: 0;
         }
 
         header h1 {
             font-weight: 600;
             letter-spacing: 2px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             text-transform: uppercase;
         }
-
-        .status-dot {
-            height: 8px;
-            width: 8px;
-            background-color: #555;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 5px;
-        }
-        .status-online { background-color: #00ff88; box-shadow: 0 0 10px #00ff88; }
 
         /* Messages Area */
         #chat-container {
@@ -67,24 +59,57 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
+
+        #chat-container::-webkit-scrollbar { display: none; }
 
         .message {
-            max-width: 80%;
-            padding: 12px 16px;
+            max-width: 85%;
+            padding: 10px 14px;
             border-radius: 18px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             line-height: 1.4;
             word-wrap: break-word;
-            animation: fadeIn 0.3s ease;
+            animation: fadeIn 0.2s ease;
             color: var(--text-primary);
+            position: relative;
         }
 
+        /* Blur Effect Styles */
+        .message img {
+            max-width: 100%;
+            border-radius: 12px;
+            display: block;
+            margin: 5px 0;
+            filter: blur(25px);
+            transition: filter 0.3s ease, transform 0.2s ease;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        .message img.revealed {
+            filter: blur(0px);
+            transform: scale(1.02);
+        }
+
+        .blur-hint {
+            font-size: 0.65rem;
+            opacity: 0.5;
+            display: block;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        /* Sender Colour - Blue Bubble */
         .message.sent {
             align-self: flex-end;
-            background: #333;
+            background: var(--accent-blue);
             border-bottom-right-radius: 4px;
         }
 
@@ -109,19 +134,15 @@
         .modal-content {
             background: var(--modal-bg);
             border: 1px solid #333;
-            padding: 30px;
+            padding: 25px;
             border-radius: 24px;
             width: 90%;
-            max-width: 400px;
+            max-width: 380px;
             text-align: center;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
 
-        .modal-content h2 {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
+        .modal-content h2 { font-size: 1.2rem; margin-bottom: 20px; font-weight: 600; }
 
         .code-box {
             background: #111;
@@ -152,8 +173,6 @@
             transition: opacity 0.2s;
         }
 
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
         .btn-ghost {
             background: transparent;
             color: white;
@@ -161,63 +180,73 @@
             margin-top: 20px;
         }
 
-        /* Input Area */
+        /* Input Area - Consistent Rainbow Shadow Size */
         .input-wrapper {
-            padding: 20px;
-            padding-bottom: 10px;
-            position: relative;
+            padding: 10px 15px;
+            flex-shrink: 0;
+            background-color: var(--bg-color);
         }
 
         .input-container {
             position: relative;
-            background: #000;
+            background: #111;
             border-radius: 30px;
             padding: 2px;
+            display: flex;
+            align-items: center;
+            border: 1px solid #333;
+            /* Slowed to 12s for a calmer feel */
+            animation: rainbowShadow 12s linear infinite;
         }
 
-        .input-container::before {
-            content: '';
-            position: absolute;
-            top: -2px; left: -2px; right: -2px; bottom: -2px;
-            background: var(--accent-gradient);
-            background-size: 400%;
-            z-index: -1;
-            border-radius: 32px;
-            filter: blur(8px);
-            opacity: 0.7;
-            animation: fluidGradient 8s linear infinite;
+        @keyframes rainbowShadow {
+            0% { box-shadow: 0 4px 15px rgba(255, 0, 0, 0.4); }
+            17% { box-shadow: 0 4px 15px rgba(255, 255, 0, 0.4); }
+            33% { box-shadow: 0 4px 15px rgba(0, 255, 0, 0.4); }
+            50% { box-shadow: 0 4px 15px rgba(0, 255, 255, 0.4); }
+            67% { box-shadow: 0 4px 15px rgba(0, 0, 255, 0.4); }
+            83% { box-shadow: 0 4px 15px rgba(255, 0, 255, 0.4); }
+            100% { box-shadow: 0 4px 15px rgba(255, 0, 0, 0.4); }
         }
 
-        @keyframes fluidGradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        input {
-            width: 100%;
-            background: #000;
+        input[type="text"] {
+            flex: 1;
+            background: transparent;
             border: none;
             outline: none;
             color: white;
-            padding: 16px 25px;
-            border-radius: 30px;
+            padding: 14px 15px 14px 20px;
             font-size: 1rem;
+        }
+
+        .media-btn {
+            background: none;
+            border: none;
+            color: white;
+            padding: 0 15px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+            transition: opacity 0.2s;
         }
 
         /* Footer */
         footer {
-            padding: 10px 20px 25px;
+            padding: 10px 15px 15px;
             text-align: center;
+            flex-shrink: 0;
         }
 
         footer p {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--text-primary);
-            max-width: 280px;
-            margin: 0 auto;
-            line-height: 1.4;
-            opacity: 0.6;
+            opacity: 0.5;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         @keyframes fadeIn {
@@ -228,13 +257,12 @@
 </head>
 <body>
 
-    <!-- P2P Setup Modal -->
     <div id="p2p-modal">
         <div class="modal-content">
             <h2>Whisper P2P</h2>
             <p style="font-size: 0.8rem; opacity: 0.7;">Your secret connection code:</p>
             <div class="code-box" id="my-code" onclick="copyCode()">...initializing...</div>
-            <p style="font-size: 0.7rem; color: #ff00cc; margin-bottom: 20px;">Tap code to copy and share with a friend</p>
+            <p style="font-size: 0.7rem; color: #ff00cc; margin-bottom: 20px;">Tap code to copy and share</p>
             
             <input type="text" id="peer-code-input" placeholder="Paste Friend's Code" 
                    style="border: 1px solid #333; margin-bottom: 10px; background: #0a0a0a; width: 100%; padding: 12px; border-radius: 12px; color: white;">
@@ -244,7 +272,7 @@
     </div>
 
     <header>
-        <h1><span id="status-dot" class="status-dot"></span> Whisper</h1>
+        <h1>Whisper</h1>
     </header>
 
     <main id="chat-container">
@@ -256,103 +284,135 @@
     <div class="input-wrapper">
         <div class="input-container">
             <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
+            <button class="media-btn" onclick="document.getElementById('file-input').click()">+</button>
+            <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="sendImage(this)">
         </div>
     </div>
 
     <footer>
-        <p>Whisper is private by design. End-to-end encrypted. No tracking. No data selling.</p>
+        <p>Private by design • End-to-end encrypted • No tracking • No data selling</p>
     </footer>
 
     <script>
         const chatContainer = document.getElementById('chat-container');
         const msgInput = document.getElementById('msg-input');
         const modal = document.getElementById('p2p-modal');
-        const statusDot = document.getElementById('status-dot');
         const connectBtn = document.getElementById('connect-btn');
         
         let peer;
         let conn;
 
-        // 1. Initialize PeerJS with explicit configuration to avoid SDP errors
+        const adjustScroll = () => {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        };
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                document.body.style.height = `${window.visualViewport.height}px`;
+                adjustScroll();
+            });
+        }
+
         function initPeer() {
             const shortId = Math.random().toString(36).substr(2, 6).toUpperCase();
-            
-            // Adding public STUN servers helps with SDP negotiation in restricted environments
             peer = new Peer('WSP-' + shortId, {
                 config: {
                     'iceServers': [
                         { url: 'stun:stun.l.google.com:19302' },
                         { url: 'stun:stun1.l.google.com:19302' }
                     ]
-                },
-                debug: 1
+                }
             });
 
             peer.on('open', (id) => {
                 document.getElementById('my-code').textContent = id;
             });
 
-            // 2. Listen for incoming connections
             peer.on('connection', (incomingConn) => {
                 conn = incomingConn;
                 setupChatListeners();
             });
 
             peer.on('error', (err) => {
-                console.error('Peer error:', err);
                 appendMessage("System Error: " + err.type, 'received');
                 connectBtn.disabled = false;
                 connectBtn.textContent = "Connect to Friend";
             });
         }
 
-        // 3. Connect to a friend
         function connectToPeer() {
             const peerId = document.getElementById('peer-code-input').value.trim();
             if (!peerId) return;
-
             connectBtn.disabled = true;
             connectBtn.textContent = "Connecting...";
-
-            // Establish connection
-            conn = peer.connect(peerId, {
-                reliable: true
-            });
-            
+            conn = peer.connect(peerId, { reliable: true });
             setupChatListeners();
         }
 
-        // 4. Setup Chat Event Listeners
         function setupChatListeners() {
             if (!conn) return;
-
             conn.on('open', () => {
                 closeModal();
-                statusDot.classList.add('status-online');
-                appendMessage("System: Connected to peer securely.", 'received');
-                
-                // Reset button state
+                appendMessage("System: Connected securely.", 'received');
                 connectBtn.disabled = false;
                 connectBtn.textContent = "Connect to Friend";
 
-                // Receive data
                 conn.on('data', (data) => {
-                    appendMessage(data, 'received');
+                    if (typeof data === 'object' && data.type === 'image') {
+                        appendImage(data.blob, 'received');
+                    } else {
+                        appendMessage(data, 'received');
+                    }
                 });
             });
-
             conn.on('close', () => {
-                statusDot.classList.remove('status-online');
                 appendMessage("System: Connection closed.", 'received');
                 conn = null;
             });
+        }
 
-            conn.on('error', (err) => {
-                console.error('Connection error:', err);
-                appendMessage("System: Connection error occurred.", 'received');
-                connectBtn.disabled = false;
-                connectBtn.textContent = "Connect to Friend";
-            });
+        function sendImage(input) {
+            if (!conn || !conn.open) {
+                appendMessage("System: No connection.", 'received');
+                return;
+            }
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const imageData = { type: 'image', blob: e.target.result };
+                conn.send(imageData);
+                appendImage(e.target.result, 'sent');
+                input.value = '';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function appendImage(src, type) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${type}`;
+            
+            const img = document.createElement('img');
+            img.src = src;
+            img.setAttribute('draggable', 'false');
+            
+            const reveal = () => img.classList.add('revealed');
+            const conceal = () => img.classList.remove('revealed');
+
+            img.addEventListener('pointerdown', reveal);
+            img.addEventListener('pointerup', conceal);
+            img.addEventListener('pointerleave', conceal);
+            img.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            const hint = document.createElement('span');
+            hint.className = 'blur-hint';
+            hint.textContent = 'Hold to view';
+
+            msgDiv.appendChild(img);
+            msgDiv.appendChild(hint);
+            chatContainer.appendChild(msgDiv);
+            adjustScroll();
         }
 
         function closeModal() {
@@ -363,19 +423,14 @@
         function copyCode() {
             const code = document.getElementById('my-code').textContent;
             if(code.includes('.')) return;
-            
             const el = document.createElement('textarea');
             el.value = code;
             document.body.appendChild(el);
             el.select();
             document.execCommand('copy');
             document.body.removeChild(el);
-            
-            const originalText = document.getElementById('my-code').textContent;
             document.getElementById('my-code').textContent = "COPIED!";
-            setTimeout(() => {
-                document.getElementById('my-code').textContent = originalText;
-            }, 1000);
+            setTimeout(() => { document.getElementById('my-code').textContent = code; }, 1000);
         }
 
         function appendMessage(text, type) {
@@ -383,26 +438,22 @@
             msgDiv.className = `message ${type}`;
             msgDiv.textContent = text;
             chatContainer.appendChild(msgDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            adjustScroll();
         }
 
-        // Send Message
         msgInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && msgInput.value.trim() !== '') {
                 const text = msgInput.value.trim();
-                
                 if (conn && conn.open) {
                     conn.send(text);
                     appendMessage(text, 'sent');
                 } else {
-                    appendMessage("System: No active connection. Open Whisper P2P to connect.", 'received');
+                    appendMessage("System: No connection.", 'received');
                 }
-                
                 msgInput.value = '';
             }
         });
 
-        // Initialize on load
         initPeer();
     </script>
 </body>
