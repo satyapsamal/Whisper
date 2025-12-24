@@ -26,6 +26,14 @@
             box-sizing: border-box;
             font-family: 'Montserrat', sans-serif;
             -webkit-tap-highlight-color: transparent;
+            /* Hide scrollbars globally but allow scrolling */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+
+        /* Hide scrollbars for Chrome, Safari, and Opera */
+        *::-webkit-scrollbar {
+            display: none;
         }
 
         body {
@@ -71,12 +79,10 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            scrollbar-width: none;
         }
 
-        #chat-container::-webkit-scrollbar { display: none; }
-
         .message {
+            width: fit-content; /* Ensure bubble grows with content */
             max-width: 85%;
             padding: 10px 14px;
             border-radius: 18px;
@@ -84,11 +90,23 @@
             line-height: 1.4;
             animation: fadeIn 0.2s ease;
             position: relative;
-            overflow: hidden;
+            overflow-wrap: break-word; /* Prevents text from leaking out */
+            flex-shrink: 0; /* Prevents bubble from shrinking in flex containers */
         }
 
-        .message.sent { align-self: flex-end; background: var(--accent-blue); border-bottom-right-radius: 4px; }
-        .message.received { align-self: flex-start; background: var(--bubble-bg); border-bottom-left-radius: 4px; }
+        .message.sent { 
+            align-self: flex-end; 
+            background: var(--accent-blue); 
+            border-bottom-right-radius: 4px; 
+            margin-left: auto;
+        }
+        
+        .message.received { 
+            align-self: flex-start; 
+            background: var(--bubble-bg); 
+            border-bottom-left-radius: 4px; 
+            margin-right: auto;
+        }
 
         /* Image Message Styles */
         .message-image-container {
@@ -97,8 +115,8 @@
             border-radius: 12px;
             overflow: hidden;
             background: #222;
-            max-width: 200px;
-            max-height: 200px;
+            width: 200px;
+            height: 200px;
         }
 
         .message-image {
@@ -130,7 +148,7 @@
         #image-popup img {
             max-width: 100%;
             max-height: 100%;
-            object-fit: contain; /* Ensures correct proportion */
+            object-fit: contain;
             border-radius: 8px;
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
             animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -194,6 +212,8 @@
             text-align: center;
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
             animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow-y: auto;
+            max-height: 90vh;
         }
 
         @keyframes modalPop {
