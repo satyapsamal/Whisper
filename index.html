@@ -31,9 +31,7 @@
             -ms-overflow-style: none;
         }
 
-        *::-webkit-scrollbar {
-            display: none;
-        }
+        *::-webkit-scrollbar { display: none; }
 
         body {
             background-color: var(--bg-color);
@@ -109,14 +107,16 @@
         .message.system {
             align-self: center;
             background: transparent;
-            color: #555;
+            color: #777;
             font-size: 0.75rem;
             text-align: center;
-            max-width: 100%;
+            max-width: 90%;
             border: none;
+            margin: 10px 0;
+            line-height: 1.6;
         }
 
-        /* Media & Audio Styles */
+        /* Audio & Media Containers */
         .message-media-container {
             cursor: pointer;
             position: relative;
@@ -135,58 +135,35 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            filter: brightness(0.7);
-            transition: transform 0.3s ease;
+            filter: blur(25px) brightness(0.6);
+            transition: filter 0.4s ease;
         }
 
-        .play-icon {
+        .message-media-container.revealed .media-preview {
+            filter: blur(0) brightness(1);
+        }
+
+        .reveal-overlay {
             position: absolute;
-            z-index: 2;
-            color: white;
-            font-size: 2rem;
-            opacity: 0.8;
-            pointer-events: none;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-
-        .audio-player {
+            inset: 0;
             display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 160px;
-            padding: 5px 0;
-        }
-
-        .audio-btn {
-            background: white;
-            color: black;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
+            z-index: 5;
+            color: white;
             font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: rgba(0,0,0,0.2);
+            transition: opacity 0.3s ease;
+            text-align: center;
+            padding: 10px;
         }
 
-        .audio-wave {
-            flex: 1;
-            height: 15px;
-            display: flex;
-            align-items: center;
-            gap: 2px;
-        }
+        .message-media-container.revealed .reveal-overlay { opacity: 0; pointer-events: none; }
 
-        .wave-bar {
-            flex: 1;
-            height: 60%;
-            background: rgba(255,255,255,0.3);
-            border-radius: 2px;
-        }
-
-        /* Lightbox Popup Styles */
+        /* Popups */
         #media-popup {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -199,19 +176,7 @@
             padding: 20px;
         }
 
-        #media-popup img, #media-popup video {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            border-radius: 8px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes zoomIn {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        #media-popup img, #media-popup video { max-width: 100%; max-height: 100%; border-radius: 8px; }
 
         /* Typing Indicator */
         #typing-bubble {
@@ -220,19 +185,17 @@
             background: var(--bubble-bg);
             border-bottom-left-radius: 4px;
             margin-bottom: 10px;
+            padding: 10px 14px;
         }
 
-        .dots { display: inline-flex; align-items: center; gap: 4px; padding: 5px 0; }
+        .dots { display: inline-flex; align-items: center; gap: 4px; }
         .dot { width: 6px; height: 6px; background: #666; border-radius: 50%; animation: dotFlashing 1s infinite alternate; }
         .dot:nth-child(2) { animation-delay: 0.2s; }
         .dot:nth-child(3) { animation-delay: 0.4s; }
 
-        @keyframes dotFlashing {
-            0% { opacity: 0.3; transform: scale(0.8); }
-            100% { opacity: 1; transform: scale(1.1); }
-        }
+        @keyframes dotFlashing { 0% { opacity: 0.3; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.1); } }
 
-        /* Modal Overlay */
+        /* Modals */
         #p2p-modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -251,10 +214,7 @@
             width: 90%;
             max-width: 400px;
             text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
             animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            overflow-y: auto;
-            max-height: 90vh;
         }
 
         .code-box {
@@ -263,7 +223,7 @@
             color: var(--accent-blue); letter-spacing: 2px;
         }
 
-        .prefs-list { margin: 25px 0; display: flex; flex-direction: column; gap: 15px; }
+        .prefs-list { margin: 25px 0; display: flex; flex-direction: column; gap: 10px; }
         .pref-item { display: flex; align-items: center; justify-content: space-between; background: #111; padding: 12px 18px; border-radius: 15px; }
         .pref-label { font-size: 0.9rem; color: #ccc; }
 
@@ -275,32 +235,17 @@
         input:checked + .slider:before { transform: translateX(22px); }
 
         .btn { background: var(--text-primary); color: black; border: none; padding: 16px 24px; border-radius: 30px; font-weight: 600; cursor: pointer; width: 100%; transition: transform 0.1s; }
-        .btn:active { transform: scale(0.98); }
-
+        
         .input-wrapper { padding: 10px 15px; background-color: var(--bg-color); }
-        .input-container { background: #111; border-radius: 30px; padding: 2px; display: flex; align-items: center; border: 1px solid #333; animation: rainbowShadow 12s linear infinite; }
-
-        @keyframes rainbowShadow {
-            0% { box-shadow: 0 4px 15px rgba(255, 0, 0, 0.4); }
-            33% { box-shadow: 0 4px 15px rgba(0, 255, 0, 0.4); }
-            66% { box-shadow: 0 4px 15px rgba(0, 0, 255, 0.4); }
-            100% { box-shadow: 0 4px 15px rgba(255, 0, 0, 0.4); }
-        }
+        .input-container { background: #111; border-radius: 30px; display: flex; align-items: center; border: 1px solid #333; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); }
 
         input[type="text"] { flex: 1; background: transparent; border: none; outline: none; color: white; padding: 14px 20px; font-size: 1rem; }
         
-        .action-btn { background: transparent; border: none; color: #555; font-size: 1.5rem; padding: 0 12px; cursor: pointer; display: flex; align-items: center; transition: 0.2s; }
-        .action-btn:active { transform: scale(0.9); }
-        .action-btn.recording { color: var(--record-red); animation: pulse 1s infinite; }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
+        .action-btn { background: transparent; border: none; color: #555; font-size: 1.5rem; padding: 0 12px; cursor: pointer; display: flex; align-items: center; }
 
         footer { padding: 15px; text-align: center; font-size: 0.65rem; color: #555; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body class="modal-active">
@@ -321,11 +266,11 @@
             <div class="prefs-list">
                 <div class="pref-item">
                     <span class="pref-label">Hide my IP address</span>
-                    <label class="ios-toggle"><input type="checkbox" id="hide-ip-toggle" onchange="toggleIPPreference()"><span class="slider"></span></label>
+                    <label class="ios-toggle"><input type="checkbox" id="hide-ip-toggle"><span class="slider"></span></label>
                 </div>
                 <div class="pref-item">
                     <span class="pref-label">Swiss Protection</span>
-                    <label class="ios-toggle"><input type="checkbox" id="swiss-toggle" onchange="saveSwissPreference()"><span class="slider"></span></label>
+                    <label class="ios-toggle"><input type="checkbox" id="swiss-toggle" checked><span class="slider"></span></label>
                 </div>
             </div>
         </div>
@@ -334,30 +279,24 @@
     <header><h1>Whisper</h1></header>
     <main id="chat-container"></main>
 
-    <div id="typing-bubble" class="message">
+    <div id="typing-bubble">
         <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
     </div>
 
     <div class="input-wrapper">
         <div class="input-container">
-            <!-- Voice Record Button at the left -->
-            <button class="action-btn" id="voice-btn">🎤</button>
-            <!-- Add Button for files -->
             <button class="action-btn" onclick="document.getElementById('file-input').click()">+</button>
-            
             <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
-            <!-- File input -->
             <input type="file" id="file-input" accept="image/*,video/*" style="display: none;">
         </div>
     </div>
 
-    <footer><p>Private P2P • No central server • Enforced Encryption</p></footer>
+    <footer><p>Messages aren’t stored or tracked</p></footer>
 
     <script>
         const chatContainer = document.getElementById('chat-container');
         const msgInput = document.getElementById('msg-input');
         const fileInput = document.getElementById('file-input');
-        const voiceBtn = document.getElementById('voice-btn');
         const modal = document.getElementById('p2p-modal');
         const connectBtn = document.getElementById('connect-btn');
         const typingBubble = document.getElementById('typing-bubble');
@@ -367,16 +306,12 @@
         const body = document.body;
         
         let peer, conn, typingTimeout;
-        let mediaRecorder, audioChunks = [];
-
-        function setCookie(name, value) { document.cookie = `${name}=${value};max-age=31536000;path=/`; }
-        function getCookie(name) { return document.cookie.split('; ').find(row => row.startsWith(name))?.split('=')[1]; }
+        const MAX_VIDEO_SIZE = 15 * 1024 * 1024; // 15 MB
 
         function initPeer() {
             const shortId = Math.random().toString(36).substr(2, 6).toUpperCase();
             peer = new Peer('WSP-' + shortId, { 
-                config: { 'iceServers': [{ url: 'stun:stun.l.google.com:19302' }] },
-                debug: 1
+                config: { 'iceServers': [{ url: 'stun:stun.l.google.com:19302' }] }
             });
             peer.on('open', (id) => document.getElementById('my-code').textContent = id);
             peer.on('connection', (incomingConn) => { conn = incomingConn; setupChatListeners(); });
@@ -393,39 +328,30 @@
 
         function setupChatListeners() {
             if (!conn) return;
-            conn.on('open', async () => {
+            
+            conn.on('open', () => {
                 body.classList.remove('modal-active');
                 modal.style.display = 'none';
-                
-                showTypingIndicator();
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                hideTypingIndicator();
                 appendMessage("Private connection active. No government, big tech, or trackers involved.", 'system');
                 
                 conn.on('data', (data) => {
                     if (data === 'WHISPER_TYPING_START') showTypingIndicator();
                     else if (data === 'WHISPER_TYPING_STOP') hideTypingIndicator();
-                    else if (typeof data === 'string' && data.startsWith('WHISPER_IMG_')) {
-                        hideTypingIndicator(); appendMedia(data.replace('WHISPER_IMG_', ''), 'image', 'received');
-                    } else if (typeof data === 'string' && data.startsWith('WHISPER_VID_')) {
-                        hideTypingIndicator(); appendMedia(data.replace('WHISPER_VID_', ''), 'video', 'received');
-                    } else if (typeof data === 'string' && data.startsWith('WHISPER_AUD_')) {
-                        hideTypingIndicator(); appendAudio(data.replace('WHISPER_AUD_', ''), 'received');
-                    } else {
-                        hideTypingIndicator(); appendMessage(data, 'received');
+                    else {
+                        hideTypingIndicator();
+                        if (typeof data === 'string' && data.startsWith('WHISPER_IMG_')) {
+                            appendMedia(data.replace('WHISPER_IMG_', ''), 'image', 'received');
+                        } else if (typeof data === 'string' && data.startsWith('WHISPER_VID_')) {
+                            appendMedia(data.replace('WHISPER_VID_', ''), 'video', 'received');
+                        } else {
+                            appendMessage(data, 'received');
+                        }
                     }
                 });
-            });
-            conn.on('close', async () => {
-                showTypingIndicator();
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                hideTypingIndicator();
-                appendMessage("Private connection ended. This chat left no traces.", 'system');
-                setTimeout(() => location.reload(), 3000);
-            });
-            conn.on('error', (err) => {
-                console.error("Connection error:", err);
-                appendMessage("Error: Connection lost or media too large.", 'system');
+
+                conn.on('close', () => {
+                    appendMessage("Private connection ended. This chat left no traces.", 'system');
+                });
             });
         }
 
@@ -434,6 +360,7 @@
             typingBubble.style.display = 'block'; 
             chatContainer.scrollTop = chatContainer.scrollHeight; 
         }
+        
         function hideTypingIndicator() { typingBubble.style.display = 'none'; }
 
         function appendMessage(text, type) {
@@ -444,155 +371,87 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function openPopup(src, type) {
-            popupImg.style.display = 'none';
-            popupVid.style.display = 'none';
-            if (type === 'image') {
-                popupImg.src = src; popupImg.style.display = 'block';
-            } else {
-                popupVid.src = src; popupVid.style.display = 'block'; 
-                popupVid.load();
-                popupVid.play().catch(e => console.warn("Autoplay blocked", e));
-            }
-            mediaPopup.style.display = 'flex';
-        }
-
-        function closePopup() {
-            mediaPopup.style.display = 'none';
-            popupVid.pause();
-            popupImg.src = ''; popupVid.src = '';
-        }
-
         function appendMedia(src, type, sender) {
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${sender}`;
             msgDiv.style.background = 'transparent'; msgDiv.style.padding = '0';
+            
             const container = document.createElement('div');
             container.className = 'message-media-container';
-            container.onclick = () => openPopup(src, type);
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'reveal-overlay';
+            overlay.innerHTML = `<span>Encrypted Media</span><br><strong style="font-size:0.8rem">Tap to reveal</strong>`;
+            
+            const media = type === 'image' ? document.createElement('img') : document.createElement('video');
+            media.src = src;
+            media.className = 'media-preview';
+            if(type === 'video') { media.muted = true; media.currentTime = 1; }
 
-            if (type === 'image') {
-                const img = document.createElement('img'); img.src = src; img.className = 'media-preview';
-                container.appendChild(img);
-            } else {
-                const vid = document.createElement('video'); 
-                vid.src = src; 
-                vid.className = 'media-preview';
-                vid.muted = true;
-                vid.playsInline = true;
-                vid.currentTime = 1; 
-                container.appendChild(vid);
-                const playIcon = document.createElement('span'); 
-                playIcon.className = 'play-icon'; 
-                playIcon.innerHTML = '▶';
-                container.appendChild(playIcon);
-            }
+            container.onclick = () => {
+                if (!container.classList.contains('revealed')) {
+                    container.classList.add('revealed');
+                } else {
+                    openPopup(src, type);
+                }
+            };
+
+            container.appendChild(media);
+            container.appendChild(overlay);
             msgDiv.appendChild(container);
             chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function appendAudio(src, sender) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${sender}`;
-            const player = document.createElement('div');
-            player.className = 'audio-player';
-            const btn = document.createElement('button');
-            btn.className = 'audio-btn';
-            btn.textContent = '▶';
-            const audio = new Audio(src);
-            btn.onclick = () => audio.paused ? audio.play() : audio.pause();
-            audio.onplay = () => btn.textContent = '⏸';
-            audio.onpause = () => btn.textContent = '▶';
-            audio.onended = () => btn.textContent = '▶';
-
-            const wave = document.createElement('div');
-            wave.className = 'audio-wave';
-            for(let i=0; i<12; i++) {
-                const bar = document.createElement('div');
-                bar.className = 'wave-bar';
-                bar.style.height = (Math.random() * 80 + 20) + '%';
-                wave.appendChild(bar);
-            }
-
-            player.appendChild(btn);
-            player.appendChild(wave);
-            msgDiv.appendChild(player);
-            chatContainer.appendChild(msgDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+        function openPopup(src, type) {
+            popupImg.style.display = 'none'; popupVid.style.display = 'none';
+            if (type === 'image') { popupImg.src = src; popupImg.style.display = 'block'; }
+            else { popupVid.src = src; popupVid.style.display = 'block'; popupVid.play(); }
+            mediaPopup.style.display = 'flex';
         }
 
-        voiceBtn.addEventListener('mousedown', startRecording);
-        voiceBtn.addEventListener('mouseup', stopRecording);
-        voiceBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); });
-        voiceBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopRecording(); });
+        function closePopup() { mediaPopup.style.display = 'none'; popupVid.pause(); }
 
-        async function startRecording() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-                mediaRecorder.onstop = sendAudio;
-                mediaRecorder.start();
-                voiceBtn.classList.add('recording');
-                if(conn?.open) conn.send('WHISPER_TYPING_START');
-            } catch (err) { console.error("Mic access denied", err); }
-        }
-
-        function stopRecording() {
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-                voiceBtn.classList.remove('recording');
-                if(conn?.open) conn.send('WHISPER_TYPING_STOP');
-            }
-        }
-
-        function sendAudio() {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const base64 = e.target.result;
-                if(conn?.open) {
-                    conn.send('WHISPER_AUD_' + base64);
-                    appendAudio(base64, 'sent');
-                }
-            };
-            reader.readAsDataURL(audioBlob);
-        }
-
-        fileInput.addEventListener('change', (e) => {
+        fileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file || !conn?.open) return;
+
+            const isVideo = file.type.startsWith('video');
             
-            const MAX_SIZE = 15728640; // 15MB
-            
-            if (file.size > MAX_SIZE) {
-                // Show loading bubble for 3 seconds before rejecting
+            if (isVideo && file.size > MAX_VIDEO_SIZE) {
+                // Show typing indicator for 3 seconds before rejecting
                 showTypingIndicator();
                 setTimeout(() => {
                     hideTypingIndicator();
                     appendMessage("This video exceeds the 15 MB limit.", 'system');
                 }, 3000);
-                
-                // Reset input so user can try another file
-                fileInput.value = "";
+                fileInput.value = '';
                 return;
             }
 
             const reader = new FileReader();
             reader.onload = (event) => {
-                const isVideo = file.type.startsWith('video');
                 const prefix = isVideo ? 'WHISPER_VID_' : 'WHISPER_IMG_';
-                const base64 = event.target.result;
-                try {
-                    conn.send(prefix + base64);
-                    appendMedia(base64, isVideo ? 'video' : 'image', 'sent');
-                } catch (err) {
-                    appendMessage("Network failure: Handshake lost during large data transfer.", 'system');
-                }
+                conn.send(prefix + event.target.result);
+                appendMedia(event.target.result, isVideo ? 'video' : 'image', 'sent');
             };
             reader.readAsDataURL(file);
+        });
+
+        msgInput.addEventListener('input', () => {
+            if (conn?.open) {
+                conn.send('WHISPER_TYPING_START');
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => conn.send('WHISPER_TYPING_STOP'), 1500);
+            }
+        });
+
+        msgInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && msgInput.value.trim() !== '' && conn?.open) {
+                conn.send(msgInput.value.trim());
+                appendMessage(msgInput.value.trim(), 'sent');
+                msgInput.value = '';
+            }
         });
 
         function copyCode() {
@@ -601,23 +460,6 @@
             document.getElementById('my-code').textContent = "COPIED";
             setTimeout(() => document.getElementById('my-code').textContent = code, 1000);
         }
-
-        msgInput.addEventListener('input', () => {
-            if (conn?.open) {
-                conn.send('WHISPER_TYPING_START');
-                clearTimeout(typingTimeout);
-                typingTimeout = setTimeout(() => conn.send('WHISPER_TYPING_STOP'), 2000);
-            }
-        });
-
-        msgInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && msgInput.value.trim() !== '' && conn?.open) {
-                const text = msgInput.value.trim();
-                conn.send(text);
-                appendMessage(text, 'sent');
-                msgInput.value = '';
-            }
-        });
 
         initPeer();
     </script>
