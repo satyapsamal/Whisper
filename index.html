@@ -82,7 +82,7 @@
             width: fit-content;
             max-width: 85%;
             padding: 10px 14px;
-            border-radius: 18px;
+            border-radius: 20px;
             font-size: 0.9rem;
             line-height: 1.4;
             animation: fadeIn 0.2s ease;
@@ -117,52 +117,29 @@
             line-height: 1.6;
         }
 
-        /* Media Messaging */
-        .message-media-container {
-            cursor: pointer;
-            position: relative;
+        /* Media styling - Square & Blurred */
+        .media-container {
+            width: 180px;
+            height: 180px;
             border-radius: 12px;
+            margin-top: 5px;
             overflow: hidden;
+            position: relative;
+            cursor: pointer;
             background: #222;
-            width: 200px;
-            height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        .media-preview {
-            display: block;
+        .media-content { 
             width: 100%;
             height: 100%;
             object-fit: cover;
-            filter: blur(25px) brightness(0.6);
-            transition: filter 0.4s ease;
+            transition: filter 0.3s ease;
+            filter: blur(25px); /* Initially blurred */
         }
 
-        .message-media-container.revealed .media-preview {
-            filter: blur(0) brightness(1);
+        .media-content.revealed {
+            filter: blur(0);
         }
-
-        .reveal-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 5;
-            color: white;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            background: rgba(0,0,0,0.2);
-            transition: opacity 0.3s ease;
-            text-align: center;
-            padding: 10px;
-        }
-
-        .message-media-container.revealed .reveal-overlay { opacity: 0; pointer-events: none; }
 
         /* Audio styling */
         .audio-bubble { display: flex; align-items: center; gap: 10px; min-width: 150px; }
@@ -171,20 +148,6 @@
             width: 32px; height: 32px; cursor: pointer;
             display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
         }
-
-        /* Popups */
-        #media-popup {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 200;
-            cursor: zoom-out;
-            padding: 20px;
-        }
-        #media-popup img, #media-popup video { max-width: 100%; max-height: 100%; border-radius: 8px; }
 
         /* Voice Recorder */
         #voice-recorder-popup {
@@ -218,20 +181,13 @@
         .rec-cancel { background: #222; color: #ff3b30; }
         .rec-send { background: var(--accent-blue); color: white; }
 
-        /* Typing & Loading Indicator */
-        #typing-bubble {
-            display: none;
-            align-self: flex-start;
-            background: var(--bubble-bg);
-            border-bottom-left-radius: 4px;
-            margin-bottom: 10px;
-            padding: 10px 14px;
+        /* Media Popup Viewer */
+        #media-viewer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); display: none; align-items: center;
+            justify-content: center; z-index: 200; backdrop-filter: blur(10px);
         }
-        .dots { display: inline-flex; align-items: center; gap: 4px; }
-        .dot { width: 6px; height: 6px; background: #666; border-radius: 50%; animation: dotFlashing 1s infinite alternate; }
-        .dot:nth-child(2) { animation-delay: 0.2s; }
-        .dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes dotFlashing { 0% { opacity: 0.3; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.1); } }
+        #media-viewer img, #media-viewer video { max-width: 95%; max-height: 90%; border-radius: 10px; }
 
         /* Modal UI */
         #p2p-modal {
@@ -262,22 +218,38 @@
 
         .btn { background: var(--text-primary); color: black; border: none; padding: 16px 24px; border-radius: 30px; font-weight: 600; cursor: pointer; width: 100%; }
 
-        /* Input Area */
+        /* Input Area with Fluid Rainbow Shadow */
         .input-wrapper { 
-            padding: 10px 15px 25px 15px; 
+            padding: 10px 15px 35px 15px; 
             background-color: var(--bg-color); 
             z-index: 60;
-            border-top: 1px solid #111;
         }
         .input-container { 
-            background: #111; border-radius: 30px; display: flex; 
-            align-items: center; border: 1px solid #222; padding: 2px;
+            background: #111; 
+            border-radius: 40px; 
+            display: flex; 
+            align-items: center; 
+            border: 1px solid #222; 
+            padding: 2px;
+            position: relative;
+            box-shadow: 0 0 15px rgba(255,255,255,0.05);
+            animation: fluidRainbowShadow 10s linear infinite;
         }
+
+        @keyframes fluidRainbowShadow {
+            0% { box-shadow: 0 4px 20px -5px rgba(255, 0, 0, 0.4); }
+            20% { box-shadow: 0 4px 20px -5px rgba(255, 255, 0, 0.4); }
+            40% { box-shadow: 0 4px 20px -5px rgba(0, 255, 0, 0.4); }
+            60% { box-shadow: 0 4px 20px -5px rgba(0, 255, 255, 0.4); }
+            80% { box-shadow: 0 4px 20px -5px rgba(0, 0, 255, 0.4); }
+            100% { box-shadow: 0 4px 20px -5px rgba(255, 0, 255, 0.4); }
+        }
+
         input[type="text"] { flex: 1; background: transparent; border: none; outline: none; color: white; padding: 14px 20px; font-size: 1rem; }
         .action-btn { background: transparent; border: none; color: #666; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; padding: 0 15px; cursor: pointer; transition: color 0.2s; }
         .action-btn svg { width: 24px; height: 24px; fill: currentColor; }
 
-        footer { padding: 5px 15px 20px 15px; text-align: center; font-size: 0.65rem; color: #444; background: var(--bg-color); }
+        footer { padding: 5px 15px 20px 15px; text-align: center; font-size: 0.65rem; color: #555; background: var(--bg-color); }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -285,15 +257,11 @@
 </head>
 <body class="modal-active">
 
-    <div id="media-popup" onclick="closePopup()">
-        <img id="popup-img" style="display: none;">
-        <video id="popup-vid" controls style="display: none;" onclick="event.stopPropagation()"></video>
-    </div>
+    <div id="media-viewer" onclick="this.style.display='none'"></div>
 
-    <!-- Voice Recorder Popup -->
     <div id="voice-recorder-popup">
         <div class="visualizer-container" id="visualizer"></div>
-        <div class="recorder-timer" id="rec-timer">0.00 sec / 20.00 sec</div>
+        <div class="recorder-timer" id="rec-timer">0.00/20.00s</div>
         <div class="recorder-actions">
             <button class="rec-btn rec-cancel" onclick="stopRecording(false)">Cancel</button>
             <button class="rec-btn rec-send" onclick="stopRecording(true)">Send</button>
@@ -303,30 +271,33 @@
     <div id="p2p-modal">
         <div class="modal-content">
             <h2 style="margin-bottom: 25px;">Whisper Fearlessly.</h2>
-            
-            <!-- SECTION 1: USER'S OWN IDENTITY -->
             <p style="font-size: 0.7rem; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Your connection code:</p>
             <div class="code-box" id="my-code" onclick="copyCode()">...</div>
 
-            <!-- SECTION 2: PRIMARY ACTION (CONNECT) - REORDERED BELOW YOUR CODE -->
             <input type="text" id="peer-code-input" placeholder="Paste Friend's Code" 
-                   style="border: 1px solid #333; margin: 0 0 12px; background: #000; width: 100%; padding: 16px; border-radius: 18px; color: white; outline: none;">
+                   style="border: 1px solid #333; margin: 0 0 12px; background: #000; width: 100%; padding: 16px; border-radius: 18px; color: white; outline: none; text-align: center;">
             
             <button class="btn" id="connect-btn" onclick="connectToPeer()">Connect Privately</button>
 
-            <!-- SECTION 3: SECONDARY PREFERENCES -->
             <div class="prefs-list">
                 <div class="pref-item">
                     <span class="pref-label">Swiss Protection</span>
                     <label class="ios-toggle">
-                        <input type="checkbox" id="pref-swiss" onchange="savePreference('swissProt', this.checked)">
+                        <input type="checkbox" id="pref-swiss" checked>
                         <span class="slider"></span>
                     </label>
                 </div>
                 <div class="pref-item">
                     <span class="pref-label">Hide IP Address</span>
                     <label class="ios-toggle">
-                        <input type="checkbox" id="pref-hide-ip" onchange="savePreference('hideIP', this.checked)">
+                        <input type="checkbox" id="pref-hide-ip" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="pref-item">
+                    <span class="pref-label">Auto-delete on leave</span>
+                    <label class="ios-toggle">
+                        <input type="checkbox" id="pref-auto-delete" checked>
                         <span class="slider"></span>
                     </label>
                 </div>
@@ -337,26 +308,21 @@
     <header><h1>Whisper</h1></header>
     <main id="chat-container"></main>
 
-    <div id="typing-bubble">
-        <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-    </div>
-
     <div class="input-wrapper">
         <div class="input-container">
             <button class="action-btn" onclick="document.getElementById('file-input').click()">+</button>
             <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
-            <!-- MINIMAL VECTOR MICROPHONE SYMBOL -->
             <button class="action-btn" id="voice-trigger" onclick="startRecording()">
                 <svg viewBox="0 0 24 24">
                     <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
                     <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
                 </svg>
             </button>
-            <input type="file" id="file-input" accept="image/*,video/*" style="display: none;">
+            <input type="file" id="file-input" style="display: none;" accept="image/*,video/*">
         </div>
     </div>
 
-    <footer><p>End-to-End Encrypted P2P Node</p></footer>
+    <footer>Messages aren’t stored or tracked</footer>
 
     <script>
         const chatContainer = document.getElementById('chat-container');
@@ -364,40 +330,14 @@
         const fileInput = document.getElementById('file-input');
         const modal = document.getElementById('p2p-modal');
         const connectBtn = document.getElementById('connect-btn');
-        const typingBubble = document.getElementById('typing-bubble');
-        const mediaPopup = document.getElementById('media-popup');
-        const popupImg = document.getElementById('popup-img');
-        const popupVid = document.getElementById('popup-vid');
         const voicePopup = document.getElementById('voice-recorder-popup');
         const visualizer = document.getElementById('visualizer');
         const timerDisplay = document.getElementById('rec-timer');
+        const mediaViewer = document.getElementById('media-viewer');
         const body = document.body;
         
-        let peer, conn, typingTimeout;
-        const MAX_VIDEO_SIZE = 15 * 1024 * 1024;
+        let peer, conn, mediaRecorder, audioChunks = [], recordInterval, startTime, audioContext, analyser, dataArray, animationFrame;
 
-        function setCookie(name, value, days = 30) {
-            const expires = new Date(Date.now() + days * 864e5).toUTCString();
-            document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`;
-        }
-
-        function getCookie(name) {
-            return document.cookie.split('; ').reduce((r, v) => {
-                const parts = v.split('=');
-                return parts[0] === name ? parts[1] : r;
-            }, '');
-        }
-
-        function savePreference(key, value) { setCookie(key, value); }
-
-        function loadPreferences() {
-            document.getElementById('pref-hide-ip').checked = getCookie('hideIP') === 'true';
-            document.getElementById('pref-swiss').checked = getCookie('swissProt') === 'true';
-        }
-
-        let mediaRecorder, audioChunks = [], recordInterval, startTime, audioContext, analyser, dataArray, animationFrame;
-
-        // Initialize visualizer bars
         for (let i = 0; i < 20; i++) {
             const bar = document.createElement('div');
             bar.className = 'visualizer-bar';
@@ -406,41 +346,120 @@
 
         function initPeer() {
             const shortId = Math.random().toString(36).substr(2, 6).toUpperCase();
-            peer = new Peer('WSP-' + shortId, { config: { 'iceServers': [{ url: 'stun:stun.l.google.com:19302' }] } });
+            peer = new Peer('WSP-' + shortId);
             peer.on('open', (id) => document.getElementById('my-code').textContent = id);
             peer.on('connection', (incomingConn) => { conn = incomingConn; setupChatListeners(); });
-            peer.on('error', (err) => { if(err.type === 'peer-unavailable') { connectBtn.textContent = "Friend not found"; connectBtn.disabled = false; setTimeout(() => connectBtn.textContent = "Connect Privately", 2000); } });
         }
 
         function connectToPeer() {
             const peerId = document.getElementById('peer-code-input').value.trim();
             if (!peerId) return;
-            connectBtn.disabled = true;
-            connectBtn.textContent = "Connecting...";
-            conn = peer.connect(peerId, { reliable: true });
+            conn = peer.connect(peerId);
             setupChatListeners();
         }
 
         function setupChatListeners() {
-            if (!conn) return;
             conn.on('open', () => {
                 body.classList.remove('modal-active');
                 modal.style.display = 'none';
-                appendMessage("Secure connection established.", 'system');
-                conn.on('data', (data) => {
-                    if (data === 'WHISPER_TYPING_START') showTypingIndicator();
-                    else if (data === 'WHISPER_TYPING_STOP') hideTypingIndicator();
-                    else { hideTypingIndicator(); handleIncomingData(data); }
-                });
+                appendMessage("Private connection active. No government, big tech, or trackers involved.", 'system');
+                conn.on('data', (data) => handleIncomingData(data));
             });
-            conn.on('close', () => { appendMessage("Connection lost.", 'system'); });
+
+            conn.on('close', () => {
+                const autoDelete = document.getElementById('pref-auto-delete').checked;
+                if (autoDelete) {
+                    chatContainer.innerHTML = '';
+                    appendMessage("Private connection ended. This chat left no traces.", 'system');
+                } else {
+                    appendMessage("Private connection ended. This chat left no traces.", 'system');
+                }
+            });
         }
 
         function handleIncomingData(data) {
-            if (typeof data === 'string' && data.startsWith('WHISPER_IMG_')) appendMedia(data.replace('WHISPER_IMG_', ''), 'image', 'received');
-            else if (typeof data === 'string' && data.startsWith('WHISPER_VID_')) appendMedia(data.replace('WHISPER_VID_', ''), 'video', 'received');
-            else if (typeof data === 'string' && data.startsWith('WHISPER_AUD_')) appendAudioMessage(data.replace('WHISPER_AUD_', ''), 'received');
-            else appendMessage(data, 'received');
+            if (typeof data === 'string' && data.startsWith('WHISPER_AUD_')) {
+                appendAudioMessage(data.replace('WHISPER_AUD_', ''), 'received');
+            } else if (typeof data === 'string' && data.startsWith('WHISPER_IMG_')) {
+                appendMediaMessage(data.replace('WHISPER_IMG_', ''), 'image', 'received');
+            } else if (typeof data === 'string' && data.startsWith('WHISPER_VID_')) {
+                appendMediaMessage(data.replace('WHISPER_VID_', ''), 'video', 'received');
+            } else {
+                appendMessage(data, 'received');
+            }
+        }
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file || !conn?.open) return;
+
+            const reader = new FileReader();
+            const isVideo = file.type.startsWith('video/');
+            const isImage = file.type.startsWith('image/');
+            
+            if (!isVideo && !isImage) return;
+
+            reader.onload = (event) => {
+                const base64 = event.target.result;
+                const prefix = isVideo ? 'WHISPER_VID_' : 'WHISPER_IMG_';
+                conn.send(prefix + base64);
+                appendMediaMessage(base64, isVideo ? 'video' : 'image', 'sent');
+            };
+            reader.readAsDataURL(file);
+            fileInput.value = '';
+        });
+
+        function appendMediaMessage(src, type, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${sender}`;
+            msgDiv.style.padding = '5px'; // Minimal padding for media bubbles
+
+            const container = document.createElement('div');
+            container.className = 'media-container';
+            
+            let el;
+            if (type === 'image') {
+                el = document.createElement('img');
+                el.src = src;
+            } else {
+                el = document.createElement('video');
+                el.src = src;
+                el.muted = true;
+                el.autoplay = true;
+                el.loop = true;
+            }
+            
+            el.className = 'media-content';
+            
+            container.onclick = () => {
+                if (!el.classList.contains('revealed')) {
+                    // First click: Reveal (Remove blur)
+                    el.classList.add('revealed');
+                } else {
+                    // Second click: Full-screen expansion
+                    showFullScreen(src, type);
+                }
+            };
+
+            container.appendChild(el);
+            msgDiv.appendChild(container);
+            chatContainer.appendChild(msgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function showFullScreen(src, type) {
+            mediaViewer.innerHTML = '';
+            let viewerEl;
+            if (type === 'image') {
+                viewerEl = document.createElement('img');
+            } else {
+                viewerEl = document.createElement('video');
+                viewerEl.controls = true;
+                viewerEl.autoplay = true;
+            }
+            viewerEl.src = src;
+            mediaViewer.appendChild(viewerEl);
+            mediaViewer.style.display = 'flex';
         }
 
         async function startRecording() {
@@ -472,11 +491,11 @@
                 voicePopup.classList.add('active');
                 recordInterval = setInterval(() => {
                     const elapsed = (Date.now() - startTime) / 1000;
-                    timerDisplay.textContent = `${elapsed.toFixed(2)} sec / 20.00 sec`;
+                    timerDisplay.textContent = `${elapsed.toFixed(2)}/20.00s`;
                     if (elapsed >= 20) stopRecording(true);
                 }, 50);
                 animateVisualizer();
-            } catch (err) { appendMessage("Microphone permission denied.", 'system'); }
+            } catch (err) { appendMessage("Microphone access denied.", 'system'); }
         }
 
         function animateVisualizer() {
@@ -486,8 +505,7 @@
             const bars = document.querySelectorAll('.visualizer-bar');
             bars.forEach((bar, i) => {
                 const val = dataArray[i % dataArray.length];
-                const height = Math.max(4, (val / 255) * 46);
-                bar.style.height = `${height}px`;
+                bar.style.height = `${Math.max(4, (val / 255) * 46)}px`;
             });
         }
 
@@ -519,9 +537,6 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function showTypingIndicator() { chatContainer.appendChild(typingBubble); typingBubble.style.display = 'block'; chatContainer.scrollTop = chatContainer.scrollHeight; }
-        function hideTypingIndicator() { typingBubble.style.display = 'none'; }
-
         function appendMessage(text, type) {
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${type}`;
@@ -529,53 +544,6 @@
             chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
-
-        function appendMedia(src, type, sender) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${sender}`;
-            msgDiv.style.background = 'transparent'; msgDiv.style.padding = '0';
-            const container = document.createElement('div');
-            container.className = 'message-media-container';
-            const overlay = document.createElement('div');
-            overlay.className = 'reveal-overlay';
-            overlay.innerHTML = `<span>Encrypted Media</span><br><strong style="font-size:0.8rem">Tap to reveal</strong>`;
-            const media = type === 'image' ? document.createElement('img') : document.createElement('video');
-            media.src = src; media.className = 'media-preview';
-            if(type === 'video') { media.muted = true; media.currentTime = 1; }
-            container.onclick = () => { if (!container.classList.contains('revealed')) container.classList.add('revealed'); else openPopup(src, type); };
-            container.appendChild(media); container.appendChild(overlay);
-            msgDiv.appendChild(container); chatContainer.appendChild(msgDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        function openPopup(src, type) {
-            popupImg.style.display = 'none'; popupVid.style.display = 'none';
-            if (type === 'image') { popupImg.src = src; popupImg.style.display = 'block'; }
-            else { popupVid.src = src; popupVid.style.display = 'block'; popupVid.play(); }
-            mediaPopup.style.display = 'flex';
-        }
-        function closePopup() { mediaPopup.style.display = 'none'; popupVid.pause(); }
-
-        fileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file || !conn?.open) return;
-            const isVideo = file.type.startsWith('video');
-            if (isVideo && file.size > MAX_VIDEO_SIZE) { appendMessage("Video exceeds 15 MB limit.", 'system'); return; }
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                conn.send((isVideo ? 'WHISPER_VID_' : 'WHISPER_IMG_') + event.target.result);
-                appendMedia(event.target.result, isVideo ? 'video' : 'image', 'sent');
-            };
-            reader.readAsDataURL(file);
-        });
-
-        msgInput.addEventListener('input', () => {
-            if (conn?.open) {
-                conn.send('WHISPER_TYPING_START');
-                clearTimeout(typingTimeout);
-                typingTimeout = setTimeout(() => conn.send('WHISPER_TYPING_STOP'), 1500);
-            }
-        });
 
         msgInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && msgInput.value.trim() !== '' && conn?.open) {
@@ -592,7 +560,7 @@
             setTimeout(() => document.getElementById('my-code').textContent = code, 1000);
         }
 
-        window.onload = () => { loadPreferences(); initPeer(); };
+        window.onload = initPeer;
     </script>
 </body>
 </html>
