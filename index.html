@@ -106,6 +106,16 @@
             margin-right: auto;
         }
 
+        .message.system {
+            align-self: center;
+            background: transparent;
+            color: #555;
+            font-size: 0.75rem;
+            text-align: center;
+            max-width: 100%;
+            border: none;
+        }
+
         /* Media & Audio Styles */
         .message-media-container {
             cursor: pointer;
@@ -125,7 +135,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            filter: blur(25px);
+            filter: brightness(0.7);
             transition: transform 0.3s ease;
         }
 
@@ -133,8 +143,10 @@
             position: absolute;
             z-index: 2;
             color: white;
+            font-size: 2rem;
             opacity: 0.8;
             pointer-events: none;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
 
         .audio-player {
@@ -334,7 +346,7 @@
             <button class="action-btn" onclick="document.getElementById('file-input').click()">+</button>
             
             <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
-            <!-- File input now supports video/* -->
+            <!-- File input -->
             <input type="file" id="file-input" accept="image/*,video/*" style="display: none;">
         </div>
     </div>
@@ -362,7 +374,10 @@
 
         function initPeer() {
             const shortId = Math.random().toString(36).substr(2, 6).toUpperCase();
-            peer = new Peer('WSP-' + shortId, { config: { 'iceServers': [{ url: 'stun:stun.l.google.com:19302' }] } });
+            peer = new Peer('WSP-' + shortId, { 
+                config: { 'iceServers': [{ url: 'stun:stun.l.google.com:19302' }] },
+                debug: 1
+            });
             peer.on('open', (id) => document.getElementById('my-code').textContent = id);
             peer.on('connection', (incomingConn) => { conn = incomingConn; setupChatListeners(); });
         }
@@ -378,10 +393,14 @@
 
         function setupChatListeners() {
             if (!conn) return;
-            conn.on('open', () => {
+            conn.on('open', async () => {
                 body.classList.remove('modal-active');
                 modal.style.display = 'none';
-                appendMessage("Secure line established.", 'received');
+                
+                showTypingIndicator();
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                hideTypingIndicator();
+                appendMessage("Private connection active. No government, big tech, or trackers involved.", 'system');
                 
                 conn.on('data', (data) => {
                     if (data === 'WHISPER_TYPING_START') showTypingIndicator();
@@ -397,10 +416,24 @@
                     }
                 });
             });
-            conn.on('close', () => location.reload());
+            conn.on('close', async () => {
+                showTypingIndicator();
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                hideTypingIndicator();
+                appendMessage("Private connection ended. This chat left no traces.", 'system');
+                setTimeout(() => location.reload(), 3000);
+            });
+            conn.on('error', (err) => {
+                console.error("Connection error:", err);
+                appendMessage("Error: Connection lost or media too large.", 'system');
+            });
         }
 
-        function showTypingIndicator() { chatContainer.appendChild(typingBubble); typingBubble.style.display = 'block'; chatContainer.scrollTop = chatContainer.scrollHeight; }
+        function showTypingIndicator() { 
+            chatContainer.appendChild(typingBubble); 
+            typingBubble.style.display = 'block'; 
+            chatContainer.scrollTop = chatContainer.scrollHeight; 
+        }
         function hideTypingIndicator() { typingBubble.style.display = 'none'; }
 
         function appendMessage(text, type) {
@@ -417,7 +450,9 @@
             if (type === 'image') {
                 popupImg.src = src; popupImg.style.display = 'block';
             } else {
-                popupVid.src = src; popupVid.style.display = 'block'; popupVid.play();
+                popupVid.src = src; popupVid.style.display = 'block'; 
+                popupVid.load();
+                popupVid.play().catch(e => console.warn("Autoplay blocked", e));
             }
             mediaPopup.style.display = 'flex';
         }
@@ -440,9 +475,16 @@
                 const img = document.createElement('img'); img.src = src; img.className = 'media-preview';
                 container.appendChild(img);
             } else {
-                const vid = document.createElement('video'); vid.src = src; vid.className = 'media-preview';
+                const vid = document.createElement('video'); 
+                vid.src = src; 
+                vid.className = 'media-preview';
+                vid.muted = true;
+                vid.playsInline = true;
+                vid.currentTime = 1; 
                 container.appendChild(vid);
-                const playIcon = document.createElement('span'); playIcon.className = 'play-icon'; playIcon.innerHTML = '▶';
+                const playIcon = document.createElement('span'); 
+                playIcon.className = 'play-icon'; 
+                playIcon.innerHTML = '▶';
                 container.appendChild(playIcon);
             }
             msgDiv.appendChild(container);
@@ -480,7 +522,6 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        // Voice Recording Logic
         voiceBtn.addEventListener('mousedown', startRecording);
         voiceBtn.addEventListener('mouseup', stopRecording);
         voiceBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); });
@@ -523,11 +564,33 @@
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file || !conn?.open) return;
+            
+            const MAX_SIZE = 15728640; // 15MB
+            
+            if (file.size > MAX_SIZE) {
+                // Show loading bubble for 3 seconds before rejecting
+                showTypingIndicator();
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    appendMessage("This video exceeds the 15 MB limit.", 'system');
+                }, 3000);
+                
+                // Reset input so user can try another file
+                fileInput.value = "";
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = (event) => {
-                const prefix = file.type.startsWith('video') ? 'WHISPER_VID_' : 'WHISPER_IMG_';
-                conn.send(prefix + event.target.result);
-                appendMedia(event.target.result, file.type.startsWith('video') ? 'video' : 'image', 'sent');
+                const isVideo = file.type.startsWith('video');
+                const prefix = isVideo ? 'WHISPER_VID_' : 'WHISPER_IMG_';
+                const base64 = event.target.result;
+                try {
+                    conn.send(prefix + base64);
+                    appendMedia(base64, isVideo ? 'video' : 'image', 'sent');
+                } catch (err) {
+                    appendMessage("Network failure: Handshake lost during large data transfer.", 'system');
+                }
             };
             reader.readAsDataURL(file);
         });
