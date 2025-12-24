@@ -328,10 +328,14 @@
 
     <div class="input-wrapper">
         <div class="input-container">
-            <button class="action-btn" onclick="document.getElementById('file-input').click()">+</button>
-            <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
-            <input type="file" id="file-input" accept="image/*,video/*" style="display: none;">
+            <!-- Voice Record Button at the left -->
             <button class="action-btn" id="voice-btn">🎤</button>
+            <!-- Add Button for files -->
+            <button class="action-btn" onclick="document.getElementById('file-input').click()">+</button>
+            
+            <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
+            <!-- File input now supports video/* -->
+            <input type="file" id="file-input" accept="image/*,video/*" style="display: none;">
         </div>
     </div>
 
