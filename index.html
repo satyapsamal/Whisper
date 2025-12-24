@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Whisper | Private Messaging</title>
     <!-- Favicon Integration -->
     <link rel="icon" type="image/webp" href="favicon.webp">
@@ -43,6 +43,7 @@
             transition: filter 0.5s ease;
         }
 
+        /* Blur state when modal is active */
         body.modal-active header,
         body.modal-active main,
         body.modal-active .input-wrapper,
@@ -116,7 +117,7 @@
             line-height: 1.6;
         }
 
-        /* Audio & Media Containers */
+        /* Media Messaging */
         .message-media-container {
             cursor: pointer;
             position: relative;
@@ -163,23 +164,12 @@
 
         .message-media-container.revealed .reveal-overlay { opacity: 0; pointer-events: none; }
 
-        /* Voice Message Styling */
-        .audio-bubble {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 150px;
-        }
+        /* Audio styling */
+        .audio-bubble { display: flex; align-items: center; gap: 10px; min-width: 150px; }
         .audio-bubble button {
-            background: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: white; border: none; border-radius: 50%;
+            width: 32px; height: 32px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
         }
 
         /* Popups */
@@ -194,74 +184,41 @@
             cursor: zoom-out;
             padding: 20px;
         }
-
         #media-popup img, #media-popup video { max-width: 100%; max-height: 100%; border-radius: 8px; }
 
-        /* Voice Recorder Popup */
+        /* Voice Recorder */
         #voice-recorder-popup {
             position: fixed;
-            bottom: -150px;
+            bottom: -300px;
             left: 50%;
             transform: translateX(-50%);
             width: 90%;
             max-width: 400px;
             background: #111;
             border: 1px solid #333;
-            border-radius: 20px 20px 0 0;
-            padding: 20px;
-            z-index: 50;
-            transition: bottom 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border-radius: 24px;
+            padding: 24px;
+            z-index: 100;
+            transition: bottom 0.5s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.3s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+            opacity: 0;
+            visibility: hidden;
         }
+        #voice-recorder-popup.active { bottom: 120px; opacity: 1; visibility: visible; }
 
-        #voice-recorder-popup.active { bottom: 85px; }
-
-        .visualizer-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 3px;
-            height: 40px;
-            width: 100%;
-        }
-
-        .visualizer-bar {
-            width: 3px;
-            background: var(--accent-blue);
-            border-radius: 2px;
-            transition: height 0.05s ease;
-        }
-
-        .recorder-timer {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #888;
-        }
-
-        .recorder-actions {
-            display: flex;
-            width: 100%;
-            justify-content: space-around;
-            gap: 10px;
-        }
-
-        .rec-btn {
-            flex: 1;
-            padding: 10px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 600;
-            font-size: 0.8rem;
-            cursor: pointer;
-        }
-
+        .visualizer-container { display: flex; align-items: center; justify-content: center; gap: 4px; height: 50px; width: 100%; }
+        .visualizer-bar { width: 3px; background: var(--accent-blue); border-radius: 4px; transition: height 0.05s ease; }
+        .recorder-timer { font-size: 0.9rem; font-weight: 600; color: #eee; }
+        .recorder-actions { display: flex; width: 100%; justify-content: space-around; gap: 15px; }
+        .rec-btn { flex: 1; padding: 14px; border-radius: 14px; border: none; font-weight: 600; cursor: pointer; }
         .rec-cancel { background: #222; color: #ff3b30; }
         .rec-send { background: var(--accent-blue); color: white; }
 
-        /* Typing Indicator */
+        /* Typing & Loading Indicator */
         #typing-bubble {
             display: none;
             align-self: flex-start;
@@ -270,64 +227,58 @@
             margin-bottom: 10px;
             padding: 10px 14px;
         }
-
         .dots { display: inline-flex; align-items: center; gap: 4px; }
         .dot { width: 6px; height: 6px; background: #666; border-radius: 50%; animation: dotFlashing 1s infinite alternate; }
         .dot:nth-child(2) { animation-delay: 0.2s; }
         .dot:nth-child(3) { animation-delay: 0.4s; }
-
         @keyframes dotFlashing { 0% { opacity: 0.3; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.1); } }
 
-        /* Modals */
+        /* Modal UI */
         #p2p-modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
+            display: flex; align-items: center; justify-content: center; z-index: 100;
         }
-
         .modal-content {
-            background: var(--modal-bg);
-            border: 1px solid #333;
-            padding: 30px;
-            border-radius: 35px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: var(--modal-bg); border: 1px solid #333; padding: 30px; border-radius: 35px;
+            width: 90%; max-width: 400px; text-align: center; animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-
         .code-box {
             background: #111; padding: 15px; border-radius: 12px; font-family: monospace;
-            font-size: 1.2rem; margin: 15px 0; border: 1px dashed #444; cursor: pointer;
+            font-size: 1.2rem; margin: 10px 0 20px; border: 1px dashed #444; cursor: pointer;
             color: var(--accent-blue); letter-spacing: 2px;
         }
+        .prefs-list { margin: 25px 0 0; display: flex; flex-direction: column; gap: 8px; }
+        .pref-item { display: flex; align-items: center; justify-content: space-between; background: #111; padding: 14px 18px; border-radius: 15px; }
+        .pref-label { font-size: 0.9rem; color: #eee; font-weight: 400; }
 
-        .prefs-list { margin: 25px 0; display: flex; flex-direction: column; gap: 10px; }
-        .pref-item { display: flex; align-items: center; justify-content: space-between; background: #111; padding: 12px 18px; border-radius: 15px; }
-        .pref-label { font-size: 0.9rem; color: #ccc; }
-
-        .ios-toggle { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .ios-toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
         .ios-toggle input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--toggle-bg); transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 24px; width: 24px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--toggle-bg); transition: .3s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--accent-blue); }
-        input:checked + .slider:before { transform: translateX(22px); }
+        input:checked + .slider:before { transform: translateX(20px); }
 
-        .btn { background: var(--text-primary); color: black; border: none; padding: 16px 24px; border-radius: 30px; font-weight: 600; cursor: pointer; width: 100%; transition: transform 0.1s; }
-        
-        .input-wrapper { padding: 10px 15px; background-color: var(--bg-color); z-index: 60; }
-        .input-container { background: #111; border-radius: 30px; display: flex; align-items: center; border: 1px solid #333; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); }
+        .btn { background: var(--text-primary); color: black; border: none; padding: 16px 24px; border-radius: 30px; font-weight: 600; cursor: pointer; width: 100%; }
 
+        /* Input Area */
+        .input-wrapper { 
+            padding: 10px 15px 25px 15px; 
+            background-color: var(--bg-color); 
+            z-index: 60;
+            border-top: 1px solid #111;
+        }
+        .input-container { 
+            background: #111; border-radius: 30px; display: flex; 
+            align-items: center; border: 1px solid #222; padding: 2px;
+        }
         input[type="text"] { flex: 1; background: transparent; border: none; outline: none; color: white; padding: 14px 20px; font-size: 1rem; }
-        
-        .action-btn { background: transparent; border: none; color: #555; font-size: 1.5rem; padding: 0 12px; cursor: pointer; display: flex; align-items: center; transition: color 0.2s; }
-        .action-btn:active { color: var(--accent-blue); }
+        .action-btn { background: transparent; border: none; color: #666; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; padding: 0 15px; cursor: pointer; transition: color 0.2s; }
+        .action-btn svg { width: 24px; height: 24px; fill: currentColor; }
 
-        footer { padding: 15px; text-align: center; font-size: 0.65rem; color: #555; }
+        footer { padding: 5px 15px 20px 15px; text-align: center; font-size: 0.65rem; color: #444; background: var(--bg-color); }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
@@ -341,9 +292,7 @@
 
     <!-- Voice Recorder Popup -->
     <div id="voice-recorder-popup">
-        <div class="visualizer-container" id="visualizer">
-            <!-- 20 Bars generated by JS -->
-        </div>
+        <div class="visualizer-container" id="visualizer"></div>
         <div class="recorder-timer" id="rec-timer">0.00 sec / 20.00 sec</div>
         <div class="recorder-actions">
             <button class="rec-btn rec-cancel" onclick="stopRecording(false)">Cancel</button>
@@ -353,20 +302,33 @@
 
     <div id="p2p-modal">
         <div class="modal-content">
-            <h2>Whisper Fearlessly.</h2>
-            <p style="font-size: 0.8rem; opacity: 0.7;">Your connection code:</p>
+            <h2 style="margin-bottom: 25px;">Whisper Fearlessly.</h2>
+            
+            <!-- SECTION 1: USER'S OWN IDENTITY -->
+            <p style="font-size: 0.7rem; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Your connection code:</p>
             <div class="code-box" id="my-code" onclick="copyCode()">...</div>
+
+            <!-- SECTION 2: PRIMARY ACTION (CONNECT) - REORDERED BELOW YOUR CODE -->
             <input type="text" id="peer-code-input" placeholder="Paste Friend's Code" 
-                   style="border: 1px solid #333; margin: 10px 0 10px; background: #000; width: 100%; padding: 14px; border-radius: 15px; color: white;">
-            <button class="btn" id="connect-btn" onclick="connectToPeer()">Connect to Friend</button>
+                   style="border: 1px solid #333; margin: 0 0 12px; background: #000; width: 100%; padding: 16px; border-radius: 18px; color: white; outline: none;">
+            
+            <button class="btn" id="connect-btn" onclick="connectToPeer()">Connect Privately</button>
+
+            <!-- SECTION 3: SECONDARY PREFERENCES -->
             <div class="prefs-list">
                 <div class="pref-item">
-                    <span class="pref-label">Hide my IP address</span>
-                    <label class="ios-toggle"><input type="checkbox" id="hide-ip-toggle"><span class="slider"></span></label>
+                    <span class="pref-label">Swiss Protection</span>
+                    <label class="ios-toggle">
+                        <input type="checkbox" id="pref-swiss" onchange="savePreference('swissProt', this.checked)">
+                        <span class="slider"></span>
+                    </label>
                 </div>
                 <div class="pref-item">
-                    <span class="pref-label">Swiss Protection</span>
-                    <label class="ios-toggle"><input type="checkbox" id="swiss-toggle" checked><span class="slider"></span></label>
+                    <span class="pref-label">Hide IP Address</span>
+                    <label class="ios-toggle">
+                        <input type="checkbox" id="pref-hide-ip" onchange="savePreference('hideIP', this.checked)">
+                        <span class="slider"></span>
+                    </label>
                 </div>
             </div>
         </div>
@@ -383,12 +345,18 @@
         <div class="input-container">
             <button class="action-btn" onclick="document.getElementById('file-input').click()">+</button>
             <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
-            <button class="action-btn" id="voice-trigger" onclick="startRecording()">🎤</button>
+            <!-- MINIMAL VECTOR MICROPHONE SYMBOL -->
+            <button class="action-btn" id="voice-trigger" onclick="startRecording()">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                </svg>
+            </button>
             <input type="file" id="file-input" accept="image/*,video/*" style="display: none;">
         </div>
     </div>
 
-    <footer><p>Messages aren’t stored or tracked</p></footer>
+    <footer><p>End-to-End Encrypted P2P Node</p></footer>
 
     <script>
         const chatContainer = document.getElementById('chat-container');
@@ -406,33 +374,42 @@
         const body = document.body;
         
         let peer, conn, typingTimeout;
-        const MAX_VIDEO_SIZE = 15 * 1024 * 1024; // 15 MB
+        const MAX_VIDEO_SIZE = 15 * 1024 * 1024;
 
-        // Audio variables
-        let mediaRecorder;
-        let audioChunks = [];
-        let recordInterval;
-        let startTime;
-        let audioContext;
-        let analyser;
-        let dataArray;
-        let animationFrame;
+        function setCookie(name, value, days = 30) {
+            const expires = new Date(Date.now() + days * 864e5).toUTCString();
+            document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`;
+        }
+
+        function getCookie(name) {
+            return document.cookie.split('; ').reduce((r, v) => {
+                const parts = v.split('=');
+                return parts[0] === name ? parts[1] : r;
+            }, '');
+        }
+
+        function savePreference(key, value) { setCookie(key, value); }
+
+        function loadPreferences() {
+            document.getElementById('pref-hide-ip').checked = getCookie('hideIP') === 'true';
+            document.getElementById('pref-swiss').checked = getCookie('swissProt') === 'true';
+        }
+
+        let mediaRecorder, audioChunks = [], recordInterval, startTime, audioContext, analyser, dataArray, animationFrame;
 
         // Initialize visualizer bars
         for (let i = 0; i < 20; i++) {
             const bar = document.createElement('div');
             bar.className = 'visualizer-bar';
-            bar.style.height = '4px';
             visualizer.appendChild(bar);
         }
 
         function initPeer() {
             const shortId = Math.random().toString(36).substr(2, 6).toUpperCase();
-            peer = new Peer('WSP-' + shortId, { 
-                config: { 'iceServers': [{ url: 'stun:stun.l.google.com:19302' }] }
-            });
+            peer = new Peer('WSP-' + shortId, { config: { 'iceServers': [{ url: 'stun:stun.l.google.com:19302' }] } });
             peer.on('open', (id) => document.getElementById('my-code').textContent = id);
             peer.on('connection', (incomingConn) => { conn = incomingConn; setupChatListeners(); });
+            peer.on('error', (err) => { if(err.type === 'peer-unavailable') { connectBtn.textContent = "Friend not found"; connectBtn.disabled = false; setTimeout(() => connectBtn.textContent = "Connect Privately", 2000); } });
         }
 
         function connectToPeer() {
@@ -446,33 +423,24 @@
 
         function setupChatListeners() {
             if (!conn) return;
-            
             conn.on('open', () => {
                 body.classList.remove('modal-active');
                 modal.style.display = 'none';
-                appendMessage("Private connection active. No government, big tech, or trackers involved.", 'system');
-                
+                appendMessage("Secure connection established.", 'system');
                 conn.on('data', (data) => {
                     if (data === 'WHISPER_TYPING_START') showTypingIndicator();
                     else if (data === 'WHISPER_TYPING_STOP') hideTypingIndicator();
-                    else {
-                        hideTypingIndicator();
-                        if (typeof data === 'string' && data.startsWith('WHISPER_IMG_')) {
-                            appendMedia(data.replace('WHISPER_IMG_', ''), 'image', 'received');
-                        } else if (typeof data === 'string' && data.startsWith('WHISPER_VID_')) {
-                            appendMedia(data.replace('WHISPER_VID_', ''), 'video', 'received');
-                        } else if (typeof data === 'string' && data.startsWith('WHISPER_AUD_')) {
-                            appendAudioMessage(data.replace('WHISPER_AUD_', ''), 'received');
-                        } else {
-                            appendMessage(data, 'received');
-                        }
-                    }
-                });
-
-                conn.on('close', () => {
-                    appendMessage("Private connection ended. This chat left no traces.", 'system');
+                    else { hideTypingIndicator(); handleIncomingData(data); }
                 });
             });
+            conn.on('close', () => { appendMessage("Connection lost.", 'system'); });
+        }
+
+        function handleIncomingData(data) {
+            if (typeof data === 'string' && data.startsWith('WHISPER_IMG_')) appendMedia(data.replace('WHISPER_IMG_', ''), 'image', 'received');
+            else if (typeof data === 'string' && data.startsWith('WHISPER_VID_')) appendMedia(data.replace('WHISPER_VID_', ''), 'video', 'received');
+            else if (typeof data === 'string' && data.startsWith('WHISPER_AUD_')) appendAudioMessage(data.replace('WHISPER_AUD_', ''), 'received');
+            else appendMessage(data, 'received');
         }
 
         async function startRecording() {
@@ -481,15 +449,12 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
-
-                // Visualizer Setup
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const source = audioContext.createMediaStreamSource(stream);
                 analyser = audioContext.createAnalyser();
                 analyser.fftSize = 64;
                 source.connect(analyser);
                 dataArray = new Uint8Array(analyser.frequencyBinCount);
-
                 mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
                 mediaRecorder.onstop = () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
@@ -502,21 +467,16 @@
                     reader.readAsDataURL(audioBlob);
                     stream.getTracks().forEach(t => t.stop());
                 };
-
                 mediaRecorder.start();
                 startTime = Date.now();
                 voicePopup.classList.add('active');
-
                 recordInterval = setInterval(() => {
                     const elapsed = (Date.now() - startTime) / 1000;
                     timerDisplay.textContent = `${elapsed.toFixed(2)} sec / 20.00 sec`;
                     if (elapsed >= 20) stopRecording(true);
                 }, 50);
-
                 animateVisualizer();
-            } catch (err) {
-                appendMessage("Microphone access denied.", 'system');
-            }
+            } catch (err) { appendMessage("Microphone permission denied.", 'system'); }
         }
 
         function animateVisualizer() {
@@ -526,7 +486,7 @@
             const bars = document.querySelectorAll('.visualizer-bar');
             bars.forEach((bar, i) => {
                 const val = dataArray[i % dataArray.length];
-                const height = Math.max(4, (val / 255) * 36);
+                const height = Math.max(4, (val / 255) * 46);
                 bar.style.height = `${height}px`;
             });
         }
@@ -536,58 +496,30 @@
             clearInterval(recordInterval);
             cancelAnimationFrame(animationFrame);
             if (audioContext) audioContext.close();
-            
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                if (send) {
-                    mediaRecorder.stop();
-                } else {
-                    mediaRecorder.onstop = null;
-                    mediaRecorder.stop();
-                    mediaRecorder.stream.getTracks().forEach(t => t.stop());
-                }
+                if (send) mediaRecorder.stop();
+                else { mediaRecorder.onstop = null; mediaRecorder.stop(); mediaRecorder.stream.getTracks().forEach(t => t.stop()); }
             }
         }
 
         function appendAudioMessage(src, sender) {
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${sender}`;
-            
             const container = document.createElement('div');
             container.className = 'audio-bubble';
-            
             const playBtn = document.createElement('button');
             playBtn.innerHTML = '▶';
-            
             const audio = new Audio(src);
-            playBtn.onclick = () => {
-                if (audio.paused) {
-                    audio.play();
-                    playBtn.innerHTML = '⏸';
-                } else {
-                    audio.pause();
-                    playBtn.innerHTML = '▶';
-                }
-            };
+            playBtn.onclick = () => { if (audio.paused) { audio.play(); playBtn.innerHTML = '⏸'; } else { audio.pause(); playBtn.innerHTML = '▶'; } };
             audio.onended = () => playBtn.innerHTML = '▶';
-
-            const durationText = document.createElement('span');
-            durationText.style.fontSize = '0.7rem';
-            durationText.style.opacity = '0.7';
-            durationText.textContent = 'Voice Message';
-
             container.appendChild(playBtn);
-            container.appendChild(durationText);
+            container.appendChild(Object.assign(document.createElement('span'), { style: 'font-size:0.75rem', textContent: 'Voice Note' }));
             msgDiv.appendChild(container);
             chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function showTypingIndicator() { 
-            chatContainer.appendChild(typingBubble); 
-            typingBubble.style.display = 'block'; 
-            chatContainer.scrollTop = chatContainer.scrollHeight; 
-        }
-        
+        function showTypingIndicator() { chatContainer.appendChild(typingBubble); typingBubble.style.display = 'block'; chatContainer.scrollTop = chatContainer.scrollHeight; }
         function hideTypingIndicator() { typingBubble.style.display = 'none'; }
 
         function appendMessage(text, type) {
@@ -602,31 +534,17 @@
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${sender}`;
             msgDiv.style.background = 'transparent'; msgDiv.style.padding = '0';
-            
             const container = document.createElement('div');
             container.className = 'message-media-container';
-            
             const overlay = document.createElement('div');
             overlay.className = 'reveal-overlay';
             overlay.innerHTML = `<span>Encrypted Media</span><br><strong style="font-size:0.8rem">Tap to reveal</strong>`;
-            
             const media = type === 'image' ? document.createElement('img') : document.createElement('video');
-            media.src = src;
-            media.className = 'media-preview';
+            media.src = src; media.className = 'media-preview';
             if(type === 'video') { media.muted = true; media.currentTime = 1; }
-
-            container.onclick = () => {
-                if (!container.classList.contains('revealed')) {
-                    container.classList.add('revealed');
-                } else {
-                    openPopup(src, type);
-                }
-            };
-
-            container.appendChild(media);
-            container.appendChild(overlay);
-            msgDiv.appendChild(container);
-            chatContainer.appendChild(msgDiv);
+            container.onclick = () => { if (!container.classList.contains('revealed')) container.classList.add('revealed'); else openPopup(src, type); };
+            container.appendChild(media); container.appendChild(overlay);
+            msgDiv.appendChild(container); chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
@@ -636,29 +554,16 @@
             else { popupVid.src = src; popupVid.style.display = 'block'; popupVid.play(); }
             mediaPopup.style.display = 'flex';
         }
-
         function closePopup() { mediaPopup.style.display = 'none'; popupVid.pause(); }
 
         fileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file || !conn?.open) return;
-
             const isVideo = file.type.startsWith('video');
-            
-            if (isVideo && file.size > MAX_VIDEO_SIZE) {
-                showTypingIndicator();
-                setTimeout(() => {
-                    hideTypingIndicator();
-                    appendMessage("This video exceeds the 15 MB limit.", 'system');
-                }, 3000);
-                fileInput.value = '';
-                return;
-            }
-
+            if (isVideo && file.size > MAX_VIDEO_SIZE) { appendMessage("Video exceeds 15 MB limit.", 'system'); return; }
             const reader = new FileReader();
             reader.onload = (event) => {
-                const prefix = isVideo ? 'WHISPER_VID_' : 'WHISPER_IMG_';
-                conn.send(prefix + event.target.result);
+                conn.send((isVideo ? 'WHISPER_VID_' : 'WHISPER_IMG_') + event.target.result);
                 appendMedia(event.target.result, isVideo ? 'video' : 'image', 'sent');
             };
             reader.readAsDataURL(file);
@@ -687,7 +592,7 @@
             setTimeout(() => document.getElementById('my-code').textContent = code, 1000);
         }
 
-        initPeer();
+        window.onload = () => { loadPreferences(); initPeer(); };
     </script>
 </body>
 </html>
