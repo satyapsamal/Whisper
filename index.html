@@ -218,14 +218,12 @@
         .action-btn { background: transparent; border: none; color: #666; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; padding: 0 15px; cursor: pointer; }
         .action-btn svg { width: 22px; height: 22px; fill: currentColor; }
 
-        footer { padding: 10px 20px 30px 20px; text-align: center; font-size: 0.85rem; font-weight: 400; color: #666; background: var(--bg-color); }
+        footer { padding: 10px 20px 30px 20px; text-align: center; font-size: 0.85rem; font-weight: 400; color: #666; background: var(--bg-color); /* Removed border-top */ }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         #media-viewer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(10px); }
         #media-viewer img, #media-viewer video { max-width: 95%; max-height: 90%; border-radius: 10px; }
-        
-        .input-label { font-size: 0.7rem; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; display: block; text-align: center; }
     </style>
 </head>
 <body class="modal-active">
@@ -246,11 +244,9 @@
     <div id="p2p-modal">
         <div class="modal-content">
             <h2 style="margin-bottom: 25px;">Whisper Fearlessly.</h2>
-            <span class="input-label">Your connection code:</span>
+            <p style="font-size: 0.7rem; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Your connection code:</p>
             <div class="code-box" id="my-code" onclick="copyCode()">...</div>
-            
-            <span class="input-label" style="margin-top: 15px;">Paste Friend's Code:</span>
-            <input type="text" id="peer-code-input" value="WSP - " placeholder="Paste Friend's Code" style="border: 1px solid #333; margin: 0 0 12px; background: #000; width: 100%; padding: 16px; border-radius: 18px; color: white; outline: none; text-align: center;">
+            <input type="text" id="peer-code-input" placeholder="Paste Friend's Code" style="border: 1px solid #333; margin: 0 0 12px; background: #000; width: 100%; padding: 16px; border-radius: 18px; color: white; outline: none; text-align: center;">
             <button class="btn" onclick="connectToPeer()">Connect Privately</button>
 
             <div class="prefs-list">
@@ -292,6 +288,7 @@
 
     <div class="input-wrapper">
         <div class="input-container" id="input-container">
+            <!-- Normal Input Mode -->
             <div id="normal-input-mode" style="display: flex; width: 100%; align-items: center;">
                 <button class="action-btn" onclick="document.getElementById('file-input').click()">+</button>
                 <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
@@ -300,6 +297,7 @@
                 </button>
             </div>
             
+            <!-- Voice Recording Mode -->
             <div id="voice-input-mode" class="voice-active-area">
                 <div class="voice-visualizer" id="visualizer"></div>
                 <div class="voice-timer" id="rec-timer">0:00</div>
@@ -332,6 +330,7 @@
         let peer, conn, mediaRecorder, audioChunks = [], recordInterval, startTime, audioContext, analyser, dataArray, animationFrame;
         let localUserSentMessage = false;
 
+        // Visualizer Bars
         for (let i = 0; i < 25; i++) {
             const bar = document.createElement('div');
             bar.className = 'v-bar';
@@ -341,17 +340,14 @@
         function initPeer() {
             const shortId = Math.random().toString(36).substr(2, 6).toUpperCase();
             peer = new Peer('WSP-' + shortId);
-            peer.on('open', (id) => {
-                document.getElementById('my-code').textContent = id.replace('WSP-', 'WSP - ');
-            });
+            peer.on('open', (id) => document.getElementById('my-code').textContent = id);
             peer.on('connection', (incomingConn) => { conn = incomingConn; setupChatListeners(); });
         }
 
         function connectToPeer() {
-            let peerId = document.getElementById('peer-code-input').value.trim();
-            const sanitizedId = peerId.replace(/\s+/g, '');
-            if (!sanitizedId || sanitizedId === "WSP-") return;
-            conn = peer.connect(sanitizedId);
+            const peerId = document.getElementById('peer-code-input').value.trim();
+            if (!peerId) return;
+            conn = peer.connect(peerId);
             setupChatListeners();
         }
 
@@ -460,11 +456,13 @@
             const playBtn = document.createElement('button');
             playBtn.innerHTML = '▶';
             
+            // Playback visualizer
             const viz = document.createElement('div');
             viz.className = 'playback-viz';
             for(let i=0; i<8; i++) {
                 const b = document.createElement('div');
                 b.className = 'pb-bar';
+                // Assign random delays to bars for a more "live" loudness look
                 b.style.animationDelay = (Math.random() * 0.5) + 's';
                 viz.appendChild(b);
             }
@@ -552,30 +550,11 @@
 
         function toggleConfirm(show) { confirmModal.style.display = show ? 'flex' : 'none'; }
         function exitChatroom() { location.reload(); }
-        
         function copyCode() {
             const code = document.getElementById('my-code').textContent;
-            const cleanCode = code.replace(/\s+/g, '');
-            
-            // Fallback for sandboxed environments where navigator.clipboard is blocked
-            const textArea = document.createElement("textarea");
-            textArea.value = cleanCode;
-            textArea.style.position = "fixed";
-            textArea.style.left = "-9999px";
-            textArea.style.top = "0";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            
-            try {
-                document.execCommand('copy');
-                const box = document.getElementById('my-code');
-                box.textContent = "COPIED";
-                setTimeout(() => box.textContent = code, 1000);
-            } catch (err) {
-                console.error('Fallback copy failed', err);
-            }
-            document.body.removeChild(textArea);
+            navigator.clipboard.writeText(code);
+            document.getElementById('my-code').textContent = "COPIED";
+            setTimeout(() => document.getElementById('my-code').textContent = code, 1000);
         }
 
         window.onload = initPeer;
