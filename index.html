@@ -144,14 +144,13 @@
         .media-content { width: 100%; height: 100%; object-fit: cover; filter: blur(25px); transition: filter 0.3s; }
         .media-content.revealed { filter: blur(0); }
 
-        .audio-bubble { display: flex; align-items: center; gap: 10px; min-width: 180px; }
-        .audio-bubble button { background: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #000; }
+        .audio-bubble { display: flex; align-items: center; gap: 10px; min-width: 220px; position: relative; }
+        .audio-bubble button { background: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #000; z-index: 2; }
         
         /* Playback Visualizer in Chat */
-        .playback-viz { display: flex; align-items: center; gap: 2px; height: 20px; }
-        .pb-bar { width: 2px; height: 4px; background: rgba(255,255,255,0.4); border-radius: 1px; }
-        .playing .pb-bar { animation: wave 1s ease-in-out infinite; }
-        @keyframes wave { 0%, 100% { height: 4px; } 50% { height: 16px; } }
+        .playback-viz { display: flex; align-items: center; gap: 3px; height: 24px; flex: 1; padding-right: 40px; }
+        .pb-bar { width: 3px; height: 4px; background: rgba(255,255,255,0.4); border-radius: 1.5px; transition: height 0.1s ease; }
+        .audio-duration { position: absolute; right: 0; font-family: monospace; font-size: 0.7rem; opacity: 0.7; color: white; }
 
         #confirm-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -218,7 +217,7 @@
         .action-btn { background: transparent; border: none; color: #666; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; padding: 0 15px; cursor: pointer; }
         .action-btn svg { width: 22px; height: 22px; fill: currentColor; }
 
-        footer { padding: 10px 20px 30px 20px; text-align: center; font-size: 0.85rem; font-weight: 400; color: #666; background: var(--bg-color); /* Removed border-top */ }
+        footer { padding: 10px 20px 30px 20px; text-align: center; font-size: 0.85rem; font-weight: 400; color: #666; background: var(--bg-color); }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -330,7 +329,7 @@
         let peer, conn, mediaRecorder, audioChunks = [], recordInterval, startTime, audioContext, analyser, dataArray, animationFrame;
         let localUserSentMessage = false;
 
-        // Visualizer Bars
+        // Visualizer Bars Initialization
         for (let i = 0; i < 25; i++) {
             const bar = document.createElement('div');
             bar.className = 'v-bar';
@@ -456,36 +455,74 @@
             const playBtn = document.createElement('button');
             playBtn.innerHTML = '▶';
             
-            // Playback visualizer
             const viz = document.createElement('div');
             viz.className = 'playback-viz';
-            for(let i=0; i<8; i++) {
+            const barsCount = 12;
+            for(let i=0; i < barsCount; i++) {
                 const b = document.createElement('div');
                 b.className = 'pb-bar';
-                // Assign random delays to bars for a more "live" loudness look
-                b.style.animationDelay = (Math.random() * 0.5) + 's';
                 viz.appendChild(b);
             }
 
+            const durationSpan = document.createElement('span');
+            durationSpan.className = 'audio-duration';
+            durationSpan.textContent = '0:00';
+
             const audio = new Audio(src);
+            let playbackCtx, playbackAnalyser, playbackData, playFrame;
+
+            audio.onloadedmetadata = () => {
+                const mins = Math.floor(audio.duration / 60);
+                const secs = Math.floor(audio.duration % 60);
+                durationSpan.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            function updatePlaybackViz() {
+                if (!playbackAnalyser) return;
+                playFrame = requestAnimationFrame(updatePlaybackViz);
+                playbackAnalyser.getByteFrequencyData(playbackData);
+                const bars = viz.querySelectorAll('.pb-bar');
+                bars.forEach((bar, i) => {
+                    const val = playbackData[i % playbackData.length];
+                    // Map loudness to bar height (4px to 24px)
+                    const height = Math.max(4, (val / 255) * 24);
+                    bar.style.height = `${height}px`;
+                });
+            }
+
             playBtn.onclick = () => {
                 if (audio.paused) { 
                     audio.play(); 
                     playBtn.innerHTML = '⏸';
-                    container.classList.add('playing');
+                    
+                    // Setup Audio API for playback loudness visualization
+                    if (!playbackCtx) {
+                        playbackCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        const source = playbackCtx.createMediaElementSource(audio);
+                        playbackAnalyser = playbackCtx.createAnalyser();
+                        playbackAnalyser.fftSize = 64;
+                        source.connect(playbackAnalyser);
+                        playbackAnalyser.connect(playbackCtx.destination);
+                        playbackData = new Uint8Array(playbackAnalyser.frequencyBinCount);
+                    }
+                    updatePlaybackViz();
                 } else { 
                     audio.pause(); 
                     playBtn.innerHTML = '▶';
-                    container.classList.remove('playing');
+                    cancelAnimationFrame(playFrame);
                 }
             };
+
             audio.onended = () => {
                 playBtn.innerHTML = '▶';
-                container.classList.remove('playing');
+                cancelAnimationFrame(playFrame);
+                // Reset bar heights
+                viz.querySelectorAll('.pb-bar').forEach(b => b.style.height = '4px');
             };
 
             container.appendChild(playBtn);
             container.appendChild(viz);
+            container.appendChild(durationSpan);
             msgDiv.appendChild(container);
             chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
