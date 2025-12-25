@@ -546,7 +546,7 @@
                 modal.style.display = 'none';
                 exitBtn.style.display = 'flex';
                 headerCallBtn.style.display = 'flex';
-                appendMessage("Secure connection established.", 'system');
+                appendMessage("Private connection active. No government, big tech, or trackers involved.", 'system');
                 if(!localUserSentMessage) suggestionContainer.style.display = 'flex';
                 conn.on('data', handleIncomingData);
                 conn.on('close', () => handleDisconnect());
@@ -954,3 +954,4 @@
     </script>
 </body>
 </html>
+
