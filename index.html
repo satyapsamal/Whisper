@@ -205,12 +205,12 @@
         /* Black Circular Loading Spinner */
         .spinner {
             display: none; 
-            width: 28px; 
-            height: 28px; 
-            border: 4px solid #333; 
-            border-top: 4px solid #fff; 
+            width: 24px; 
+            height: 24px; 
+            border: 3px solid #333; 
+            border-top: 3px solid #fff; 
             border-radius: 50%; 
-            animation: spin 0.8s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+            animation: spin 0.8s linear infinite;
             margin: 0 auto;
         }
         @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -261,7 +261,7 @@
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--accent-blue); }
         input:checked + .slider:before { transform: translateX(20px); }
-        .btn { background: var(--text-primary); color: black; border: none; padding: 16px 24px; border-radius: 30px; font-weight: 600; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn { background: var(--text-primary); color: black; border: none; padding: 16px 24px; border-radius: 30px; font-weight: 600; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; }
 
         .input-wrapper { padding: 10px 15px 35px 15px; background-color: var(--bg-color); z-index: 60; }
         .input-container { 
@@ -332,8 +332,8 @@
 
             <div id="troubleshoot-panel">
                 <div class="troubleshoot-title">Troubleshooting required</div>
-                <button class="troubleshoot-btn" onclick="switchNetworkServer()">Switch Relay Server (Global)</button>
-                <p style="font-size: 0.65rem; color: #555;">Switching servers can bypass restricted office/mobile firewalls.</p>
+                <button class="troubleshoot-btn" onclick="location.reload()">Refresh & Try Again</button>
+                <p style="font-size: 0.65rem; color: #555;">If connection fails, both users should refresh the page.</p>
             </div>
 
             <div class="prefs-list">
@@ -381,7 +381,6 @@
             <div id="normal-input-mode" style="display: flex; width: 100%; align-items: center;">
                 <button class="action-btn" onclick="document.getElementById('file-input').click()">+</button>
                 <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
-                <!-- RESTORED VOICE NOTE OPTION AT RIGHT SIDE -->
                 <button class="action-btn" id="voice-trigger" onclick="startRecording()">
                     <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                 </button>
@@ -426,6 +425,8 @@
         let currentCall = null;
         let localStream = null;
         let callAudioCtx, callAnalyser, callDataArray, callAnimFrame;
+        
+        // --- Connection Trial Tracking ---
         let connectionAttempts = 0;
         let lastAttemptedCode = "";
 
@@ -435,56 +436,73 @@
             visualizer.appendChild(bar);
         }
 
-        function initPeer(customConfig = null) {
+        function initPeer() {
             const shortId = Math.random().toString(36).substr(2, 6).toUpperCase();
-            const defaultConfig = {
+            peer = new Peer('WSP-' + shortId, {
                 config: {
                     'iceServers': [
                         { url: 'stun:stun.l.google.com:19302' },
                         { url: 'stun:stun1.l.google.com:19302' }
                     ]
                 }
-            };
-            peer = new Peer('WSP-' + shortId, customConfig || defaultConfig);
+            });
             peer.on('open', (id) => document.getElementById('my-code').textContent = id);
             peer.on('connection', (incomingConn) => { conn = incomingConn; setupChatListeners(); });
             peer.on('call', showIncomingCallUI);
-            peer.on('error', () => resetConnectButton());
+            peer.on('error', (err) => {
+                console.error(err);
+                resetConnectButton();
+            });
         }
 
         function handleConnectClick() {
             const rawId = document.getElementById('peer-code-input').value.trim();
             if (!rawId) return;
+
+            // Update trial counts
+            const normalizedId = rawId.toUpperCase();
+            if (normalizedId === lastAttemptedCode) {
+                connectionAttempts++;
+            } else {
+                connectionAttempts = 1;
+                lastAttemptedCode = normalizedId;
+            }
+
+            // UI feedback: Show spinner immediately
             const btnText = document.getElementById('btn-text');
             const btnSpinner = document.getElementById('btn-spinner');
             const connectBtn = document.getElementById('connect-btn');
             btnText.style.display = 'none';
             btnSpinner.style.display = 'block';
             connectBtn.disabled = true;
-            setTimeout(() => connectToPeer(rawId), 2500);
+
+            // Delayed connection call to show off the spinner
+            setTimeout(() => connectToPeer(normalizedId), 2000);
         }
 
         function resetConnectButton() {
             document.getElementById('btn-text').style.display = 'block';
             document.getElementById('btn-spinner').style.display = 'none';
             document.getElementById('connect-btn').disabled = false;
+            
+            // Show troubleshoot panel if same code failed twice
+            if (connectionAttempts >= 2) {
+                troubleshootPanel.style.display = 'block';
+            }
         }
 
         function connectToPeer(rawId) {
-            const peerId = rawId.startsWith('WSP-') ? rawId : 'WSP-' + rawId.toUpperCase();
-            if (peerId === lastAttemptedCode) connectionAttempts++;
-            else { connectionAttempts = 1; lastAttemptedCode = peerId; }
-
+            const peerId = rawId.startsWith('WSP-') ? rawId : 'WSP-' + rawId;
             conn = peer.connect(peerId, { reliable: true });
-            const timeout = setTimeout(() => {
+
+            const connectionTimeout = setTimeout(() => {
                 if (!conn.open) {
                     resetConnectButton();
-                    if (connectionAttempts >= 2) troubleshootPanel.style.display = 'block';
                 }
-            }, 5000);
+            }, 6000);
 
             conn.on('open', () => {
-                clearTimeout(timeout);
+                clearTimeout(connectionTimeout);
                 body.classList.remove('modal-active');
                 modal.style.display = 'none';
                 exitBtn.style.display = 'flex';
@@ -492,6 +510,11 @@
                 appendMessage("Secure connection established.", 'system');
                 if(!localUserSentMessage) suggestionContainer.style.display = 'flex';
                 conn.on('data', handleIncomingData);
+            });
+
+            conn.on('error', () => {
+                clearTimeout(connectionTimeout);
+                resetConnectButton();
             });
         }
 
@@ -518,7 +541,6 @@
                 showCallOverlay("Calling...");
                 renderCallControls([ { label: '✕', class: 'btn-hangup', action: endCall } ]);
                 
-                // Track local voice for ripples during calling
                 setupRippleFeedback(localStream);
 
                 currentCall.on('stream', (remoteStream) => {
@@ -580,7 +602,6 @@
             for(let i=0; i < callDataArray.length; i++) sum += callDataArray[i];
             const volume = sum / callDataArray.length;
             
-            // Normalize volume 0-1
             const scale = volume / 128; 
             const ripple1 = document.getElementById('ripple-1');
             const ripple2 = document.getElementById('ripple-2');
@@ -625,8 +646,6 @@
                 callControls.appendChild(b);
             });
         }
-
-        // --- Original Message Functions ---
 
         function handleIncomingData(data) {
             if (typeof data === 'string' && data.startsWith('WHISPER_AUD_')) appendAudioMessage(data.replace('WHISPER_AUD_', ''), 'received');
@@ -738,6 +757,7 @@
         }
 
         function appendMessage(text, type) {
+            if (text === "") return;
             if (type === 'sent') markSent();
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${type}`;
@@ -780,6 +800,18 @@
                 appendMessage(val, 'sent');
                 msgInput.value = '';
             }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file || !conn?.open) return;
+            const reader = new FileReader();
+            const type = file.type.startsWith('video/') ? 'video' : 'image';
+            reader.onload = (ev) => {
+                conn.send((type === 'video' ? 'WHISPER_VID_' : 'WHISPER_IMG_') + ev.target.result);
+                appendMediaMessage(ev.target.result, type, 'sent');
+            };
+            reader.readAsDataURL(file);
         });
 
         function toggleConfirm(show) { confirmModal.style.display = show ? 'flex' : 'none'; }
