@@ -174,20 +174,25 @@
         .confirm-actions { display: flex; gap: 10px; margin-top: 20px; }
         .confirm-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; }
 
-        /* Call Overlay UI with Ripple Effect */
+        /* Call Overlay UI with Reactive Ripples */
         #call-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); display: none; flex-direction: column;
+            background: rgba(0,0,0,0.95); display: none; flex-direction: column;
             align-items: center; justify-content: center; z-index: 400; backdrop-filter: blur(15px);
         }
-        .call-avatar-wrapper { position: relative; width: 120px; height: 120px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; }
+        .call-avatar-wrapper { position: relative; width: 200px; height: 200px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; }
         .call-ripple {
-            position: absolute; width: 100%; height: 100%; border: 2px solid var(--accent-blue);
-            border-radius: 50%; opacity: 0; transform: scale(1); pointer-events: none;
-            transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+            position: absolute; 
+            width: 120px; 
+            height: 120px; 
+            border: 2px solid var(--accent-blue);
+            border-radius: 50%; 
+            opacity: 0; 
+            transition: transform 0.05s ease-out, opacity 0.05s ease-out;
+            pointer-events: none;
         }
         .call-avatar { 
-            position: relative; width: 100px; height: 100px; background: #222; 
+            position: relative; width: 120px; height: 120px; background: #1a1a1a; 
             border-radius: 50%; display: flex; align-items: center; justify-content: center; 
             border: 2px solid var(--accent-blue); z-index: 2;
         }
@@ -197,10 +202,15 @@
         .btn-hangup { background: var(--record-red); }
         .btn-accept { background: var(--call-green); }
 
-        /* Loading Spinner */
+        /* Black Circular Loading Spinner */
         .spinner {
-            display: none; width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.1);
-            border-top: 3px solid white; border-radius: 50%; animation: spin 0.8s linear infinite;
+            display: none; 
+            width: 28px; 
+            height: 28px; 
+            border: 4px solid #333; 
+            border-top: 4px solid #fff; 
+            border-radius: 50%; 
+            animation: spin 0.8s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
             margin: 0 auto;
         }
         @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -230,12 +240,20 @@
 
         /* Modal UI */
         #p2p-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; }
-        .modal-content { background: var(--modal-bg); border: 1px solid #333; padding: 30px; border-radius: 35px; width: 90%; max-width: 400px; text-align: center; animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-content { 
+            background: var(--modal-bg); border: 1px solid #333; padding: 30px; border-radius: 35px; width: 90%; max-width: 400px; 
+            text-align: center; animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            max-height: 90vh; overflow-y: auto;
+        }
         .code-box { background: #111; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 1.2rem; margin: 10px 0 20px; border: 1px dashed #444; cursor: pointer; color: var(--accent-blue); letter-spacing: 2px; text-transform: uppercase; }
         
         .prefs-list { margin: 25px 0 0; display: flex; flex-direction: column; gap: 8px; }
         .pref-item { display: flex; align-items: center; justify-content: space-between; background: #111; padding: 14px 18px; border-radius: 15px; }
         .pref-label { font-size: 0.9rem; color: #eee; font-weight: 400; }
+
+        #troubleshoot-panel { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #222; animation: fadeIn 0.4s ease; }
+        .troubleshoot-title { font-size: 0.75rem; color: var(--record-red); text-transform: uppercase; font-weight: 600; margin-bottom: 12px; }
+        .troubleshoot-btn { background: #1a1a1a; color: #eee; font-size: 0.8rem; border: 1px solid #333; padding: 12px; border-radius: 12px; width: 100%; cursor: pointer; margin-bottom: 8px; }
 
         .ios-toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
         .ios-toggle input { opacity: 0; width: 0; height: 0; }
@@ -262,6 +280,7 @@
 
         .action-btn { background: transparent; border: none; color: #666; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; padding: 0 15px; cursor: pointer; }
         .action-btn svg { width: 22px; height: 22px; fill: currentColor; }
+        #voice-trigger { color: var(--accent-blue); }
 
         footer { padding: 10px 20px 30px 20px; text-align: center; font-size: 0.85rem; font-weight: 400; color: #666; background: var(--bg-color); }
 
@@ -279,15 +298,14 @@
     <div id="call-overlay">
         <div class="call-avatar-wrapper">
             <div class="call-ripple" id="ripple-1"></div>
-            <div class="call-ripple" id="ripple-2"></div>
+            <div class="call-ripple" id="ripple-2" style="border-color: rgba(0, 122, 255, 0.5)"></div>
+            <div class="call-ripple" id="ripple-3" style="border-color: rgba(0, 122, 255, 0.2)"></div>
             <div class="call-avatar">
                 <svg viewBox="0 0 24 24" fill="white" width="50" height="50"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
             </div>
         </div>
         <div class="call-status" id="call-status">Incoming Call...</div>
-        <div class="call-controls" id="call-controls">
-            <!-- Dynamically populated -->
-        </div>
+        <div class="call-controls" id="call-controls"></div>
     </div>
 
     <div id="confirm-modal">
@@ -311,6 +329,12 @@
                 <span id="btn-text">Connect Privately</span>
                 <div class="spinner" id="btn-spinner"></div>
             </button>
+
+            <div id="troubleshoot-panel">
+                <div class="troubleshoot-title">Troubleshooting required</div>
+                <button class="troubleshoot-btn" onclick="switchNetworkServer()">Switch Relay Server (Global)</button>
+                <p style="font-size: 0.65rem; color: #555;">Switching servers can bypass restricted office/mobile firewalls.</p>
+            </div>
 
             <div class="prefs-list">
                 <div class="pref-item">
@@ -354,16 +378,15 @@
 
     <div class="input-wrapper">
         <div class="input-container" id="input-container">
-            <!-- Normal Input Mode -->
             <div id="normal-input-mode" style="display: flex; width: 100%; align-items: center;">
                 <button class="action-btn" onclick="document.getElementById('file-input').click()">+</button>
                 <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
+                <!-- RESTORED VOICE NOTE OPTION AT RIGHT SIDE -->
                 <button class="action-btn" id="voice-trigger" onclick="startRecording()">
                     <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                 </button>
             </div>
             
-            <!-- Voice Recording Mode -->
             <div id="voice-input-mode" class="voice-active-area">
                 <div class="voice-visualizer" id="visualizer"></div>
                 <div class="voice-timer" id="rec-timer">0:00</div>
@@ -395,85 +418,81 @@
         const callOverlay = document.getElementById('call-overlay');
         const callStatus = document.getElementById('call-status');
         const callControls = document.getElementById('call-controls');
+        const troubleshootPanel = document.getElementById('troubleshoot-panel');
         const body = document.body;
         
         let peer, conn, mediaRecorder, audioChunks = [], recordInterval, startTime, audioContext, analyser, dataArray, animationFrame;
         let localUserSentMessage = false;
         let currentCall = null;
         let localStream = null;
-        let callAnalyser, callDataArray, callAnimationFrame;
+        let callAudioCtx, callAnalyser, callDataArray, callAnimFrame;
+        let connectionAttempts = 0;
+        let lastAttemptedCode = "";
 
-        // Visualizer Bars Initialization
         for (let i = 0; i < 25; i++) {
             const bar = document.createElement('div');
             bar.className = 'v-bar';
             visualizer.appendChild(bar);
         }
 
-        function initPeer() {
+        function initPeer(customConfig = null) {
             const shortId = Math.random().toString(36).substr(2, 6).toUpperCase();
-            peer = new Peer('WSP-' + shortId, {
+            const defaultConfig = {
                 config: {
                     'iceServers': [
                         { url: 'stun:stun.l.google.com:19302' },
-                        { url: 'stun:stun1.l.google.com:19302' },
-                        { url: 'stun:stun2.l.google.com:19302' }
+                        { url: 'stun:stun1.l.google.com:19302' }
                     ]
                 }
-            });
-
+            };
+            peer = new Peer('WSP-' + shortId, customConfig || defaultConfig);
             peer.on('open', (id) => document.getElementById('my-code').textContent = id);
-            
-            peer.on('connection', (incomingConn) => { 
-                conn = incomingConn; 
-                setupChatListeners(); 
-            });
-
-            peer.on('call', (incomingCall) => {
-                showIncomingCallUI(incomingCall);
-            });
-
-            peer.on('error', (err) => {
-                resetConnectButton();
-                if(err.type === 'peer-unavailable') {
-                    appendMessage("Friend is offline or code is invalid.", "system");
-                }
-            });
+            peer.on('connection', (incomingConn) => { conn = incomingConn; setupChatListeners(); });
+            peer.on('call', showIncomingCallUI);
+            peer.on('error', () => resetConnectButton());
         }
 
         function handleConnectClick() {
+            const rawId = document.getElementById('peer-code-input').value.trim();
+            if (!rawId) return;
             const btnText = document.getElementById('btn-text');
             const btnSpinner = document.getElementById('btn-spinner');
             const connectBtn = document.getElementById('connect-btn');
-
             btnText.style.display = 'none';
             btnSpinner.style.display = 'block';
             connectBtn.disabled = true;
-
-            // Fake loading for 2.5 seconds before attempting P2P
-            setTimeout(() => {
-                connectToPeer();
-            }, 2500);
+            setTimeout(() => connectToPeer(rawId), 2500);
         }
 
         function resetConnectButton() {
-            const btnText = document.getElementById('btn-text');
-            const btnSpinner = document.getElementById('btn-spinner');
-            const connectBtn = document.getElementById('connect-btn');
-            btnText.style.display = 'block';
-            btnSpinner.style.display = 'none';
-            connectBtn.disabled = false;
+            document.getElementById('btn-text').style.display = 'block';
+            document.getElementById('btn-spinner').style.display = 'none';
+            document.getElementById('connect-btn').disabled = false;
         }
 
-        function connectToPeer() {
-            const rawId = document.getElementById('peer-code-input').value.trim();
+        function connectToPeer(rawId) {
             const peerId = rawId.startsWith('WSP-') ? rawId : 'WSP-' + rawId.toUpperCase();
-            if (!rawId) {
-                resetConnectButton();
-                return;
-            }
+            if (peerId === lastAttemptedCode) connectionAttempts++;
+            else { connectionAttempts = 1; lastAttemptedCode = peerId; }
+
             conn = peer.connect(peerId, { reliable: true });
-            setupChatListeners();
+            const timeout = setTimeout(() => {
+                if (!conn.open) {
+                    resetConnectButton();
+                    if (connectionAttempts >= 2) troubleshootPanel.style.display = 'block';
+                }
+            }, 5000);
+
+            conn.on('open', () => {
+                clearTimeout(timeout);
+                body.classList.remove('modal-active');
+                modal.style.display = 'none';
+                exitBtn.style.display = 'flex';
+                headerCallBtn.style.display = 'flex';
+                appendMessage("Secure connection established.", 'system');
+                if(!localUserSentMessage) suggestionContainer.style.display = 'flex';
+                conn.on('data', handleIncomingData);
+            });
         }
 
         function setupChatListeners() {
@@ -482,40 +501,35 @@
                 modal.style.display = 'none';
                 exitBtn.style.display = 'flex';
                 headerCallBtn.style.display = 'flex';
-                appendMessage("Secure connection established. Your chat is entirely off-the-record.", 'system');
+                appendMessage("Friend connected. Chat is live.", 'system');
                 if(!localUserSentMessage) suggestionContainer.style.display = 'flex';
                 conn.on('data', handleIncomingData);
             });
-            
             conn.on('close', () => location.reload());
-            conn.on('error', () => {
-                resetConnectButton();
-                location.reload();
-            });
         }
 
-        // --- Real-time Call Functions with Ripple Logic ---
+        // --- Reactive Ripples Calling Logic ---
 
         async function initiateVoiceCall() {
             if (!conn?.open) return;
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 currentCall = peer.call(conn.peer, localStream);
-                
                 showCallOverlay("Calling...");
-                renderCallControls([
-                    { label: '✕', class: 'btn-hangup', action: endCall }
-                ]);
+                renderCallControls([ { label: '✕', class: 'btn-hangup', action: endCall } ]);
+                
+                // Track local voice for ripples during calling
+                setupRippleFeedback(localStream);
 
                 currentCall.on('stream', (remoteStream) => {
-                    handleRemoteStream(remoteStream);
+                    setupRippleFeedback(remoteStream);
                     callStatus.textContent = "On Call";
+                    const audio = new Audio();
+                    audio.srcObject = remoteStream;
+                    audio.play();
                 });
-
                 currentCall.on('close', endCall);
-            } catch (err) {
-                appendMessage("Could not access microphone for call.", "system");
-            }
+            } catch (err) { appendMessage("Could not access microphone.", "system"); }
         }
 
         function showIncomingCallUI(incomingCall) {
@@ -532,60 +546,68 @@
                 localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 currentCall.answer(localStream);
                 callStatus.textContent = "Connecting...";
-                
-                renderCallControls([
-                    { label: '✕', class: 'btn-hangup', action: endCall }
-                ]);
+                renderCallControls([ { label: '✕', class: 'btn-hangup', action: endCall } ]);
 
                 currentCall.on('stream', (remoteStream) => {
-                    handleRemoteStream(remoteStream);
+                    setupRippleFeedback(remoteStream);
                     callStatus.textContent = "On Call";
+                    const audio = new Audio();
+                    audio.srcObject = remoteStream;
+                    audio.play();
                 });
-
                 currentCall.on('close', endCall);
-            } catch (err) {
-                endCall();
-            }
+            } catch (err) { endCall(); }
         }
 
-        function handleRemoteStream(remoteStream) {
-            const audio = new Audio();
-            audio.srcObject = remoteStream;
-            audio.play();
+        function setupRippleFeedback(stream) {
+            if (callAnimFrame) cancelAnimationFrame(callAnimFrame);
+            if (callAudioCtx) callAudioCtx.close();
 
-            // Set up Loudness Analysis for Ripple
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const source = ctx.createMediaStreamSource(remoteStream);
-            callAnalyser = ctx.createAnalyser();
-            callAnalyser.fftSize = 256;
+            callAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const source = callAudioCtx.createMediaStreamSource(stream);
+            callAnalyser = callAudioCtx.createAnalyser();
+            callAnalyser.fftSize = 64;
             source.connect(callAnalyser);
             callDataArray = new Uint8Array(callAnalyser.frequencyBinCount);
-            
-            animateCallRipple();
+            animateRipples();
         }
 
-        function animateCallRipple() {
-            if (!callAnalyser) return;
-            callAnimationFrame = requestAnimationFrame(animateCallRipple);
+        function animateRipples() {
+            callAnimFrame = requestAnimationFrame(animateRipples);
             callAnalyser.getByteFrequencyData(callDataArray);
             
             let sum = 0;
-            for(let i=0; i<callDataArray.length; i++) sum += callDataArray[i];
-            const average = sum / callDataArray.length;
-            const level = average / 128; // 0 to 2 approx
-
+            for(let i=0; i < callDataArray.length; i++) sum += callDataArray[i];
+            const volume = sum / callDataArray.length;
+            
+            // Normalize volume 0-1
+            const scale = volume / 128; 
             const ripple1 = document.getElementById('ripple-1');
             const ripple2 = document.getElementById('ripple-2');
+            const ripple3 = document.getElementById('ripple-3');
 
-            if (level > 0.1) {
-                ripple1.style.opacity = (level * 0.5);
-                ripple1.style.transform = `scale(${1 + level * 0.8})`;
-                ripple2.style.opacity = (level * 0.3);
-                ripple2.style.transform = `scale(${1 + level * 1.5})`;
+            if (scale > 0.05) {
+                ripple1.style.opacity = 0.8;
+                ripple1.style.transform = `scale(${1 + scale * 0.8})`;
+                ripple2.style.opacity = 0.5;
+                ripple2.style.transform = `scale(${1 + scale * 1.5})`;
+                ripple3.style.opacity = 0.3;
+                ripple3.style.transform = `scale(${1 + scale * 2.2})`;
             } else {
-                ripple1.style.opacity = 0;
-                ripple2.style.opacity = 0;
+                [ripple1, ripple2, ripple3].forEach(r => {
+                    r.style.opacity = 0;
+                    r.style.transform = 'scale(1)';
+                });
             }
+        }
+
+        function endCall() {
+            if (currentCall) currentCall.close();
+            if (localStream) localStream.getTracks().forEach(t => t.stop());
+            if (callAnimFrame) cancelAnimationFrame(callAnimFrame);
+            if (callAudioCtx) callAudioCtx.close();
+            callOverlay.style.display = 'none';
+            currentCall = null;
         }
 
         function showCallOverlay(status) {
@@ -604,17 +626,7 @@
             });
         }
 
-        function endCall() {
-            if (currentCall) currentCall.close();
-            if (localStream) localStream.getTracks().forEach(t => t.stop());
-            if (callAnimationFrame) cancelAnimationFrame(callAnimationFrame);
-            callOverlay.style.display = 'none';
-            currentCall = null;
-            localStream = null;
-            callAnalyser = null;
-        }
-
-        // --- Message Handling ---
+        // --- Original Message Functions ---
 
         function handleIncomingData(data) {
             if (typeof data === 'string' && data.startsWith('WHISPER_AUD_')) appendAudioMessage(data.replace('WHISPER_AUD_', ''), 'received');
@@ -658,22 +670,17 @@
                     reader.readAsDataURL(audioBlob);
                     stream.getTracks().forEach(t => t.stop());
                 };
-
                 mediaRecorder.start();
                 startTime = Date.now();
-                
                 normalMode.style.display = 'none';
                 voiceMode.style.display = 'flex';
-
                 recordInterval = setInterval(() => {
                     const elapsed = (Date.now() - startTime) / 1000;
-                    const mins = Math.floor(elapsed / 60);
-                    const secs = Math.floor(elapsed % 60);
-                    timerDisplay.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                    timerDisplay.textContent = `${Math.floor(elapsed / 60)}:${Math.floor(elapsed % 60).toString().padStart(2, '0')}`;
                     if (elapsed >= 60) stopRecording(true);
                 }, 100);
                 animateVisualizer();
-            } catch (err) { appendMessage("Mic access required for voice notes.", 'system'); }
+            } catch (err) { appendMessage("Mic access required.", 'system'); }
         }
 
         function animateVisualizer() {
@@ -705,80 +712,23 @@
             msgDiv.className = `message ${sender}`;
             const container = document.createElement('div');
             container.className = 'audio-bubble';
-            
             const playBtn = document.createElement('button');
             playBtn.innerHTML = '▶';
-            
             const viz = document.createElement('div');
             viz.className = 'playback-viz';
-            const barsCount = 14;
-            for(let i=0; i < barsCount; i++) {
+            for(let i=0; i < 14; i++) {
                 const b = document.createElement('div');
                 b.className = 'pb-bar';
                 viz.appendChild(b);
             }
-
             const durationSpan = document.createElement('span');
             durationSpan.className = 'audio-duration';
-            durationSpan.textContent = '0:00 / 0:00';
-
             const audio = new Audio(src);
-            let playbackCtx, playbackAnalyser, playbackData, playFrame;
-
-            function formatTime(time) {
-                const mins = Math.floor(time / 60) || 0;
-                const secs = Math.floor(time % 60) || 0;
-                return `${mins}:${secs.toString().padStart(2, '0')}`;
-            }
-
-            audio.onloadedmetadata = () => {
-                durationSpan.textContent = `0:00 / ${formatTime(audio.duration)}`;
-            };
-
-            audio.ontimeupdate = () => {
-                durationSpan.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
-            };
-
-            function updatePlaybackViz() {
-                if (!playbackAnalyser) return;
-                playFrame = requestAnimationFrame(updatePlaybackViz);
-                playbackAnalyser.getByteFrequencyData(playbackData);
-                const bars = viz.querySelectorAll('.pb-bar');
-                bars.forEach((bar, i) => {
-                    const val = playbackData[i % playbackData.length];
-                    const height = Math.max(4, (val / 255) * 24);
-                    bar.style.height = `${height}px`;
-                });
-            }
-
+            audio.onloadedmetadata = () => durationSpan.textContent = `0:00 / ${Math.floor(audio.duration / 60)}:${Math.floor(audio.duration % 60).toString().padStart(2, '0')}`;
             playBtn.onclick = () => {
-                if (audio.paused) { 
-                    audio.play(); 
-                    playBtn.innerHTML = '⏸';
-                    
-                    if (!playbackCtx) {
-                        playbackCtx = new (window.AudioContext || window.webkitAudioContext)();
-                        const source = playbackCtx.createMediaElementSource(audio);
-                        playbackAnalyser = playbackCtx.createAnalyser();
-                        playbackAnalyser.fftSize = 64;
-                        source.connect(playbackAnalyser);
-                        playbackAnalyser.connect(playbackCtx.destination);
-                        playbackData = new Uint8Array(playbackAnalyser.frequencyBinCount);
-                    }
-                    updatePlaybackViz();
-                } else { 
-                    audio.pause(); 
-                    playBtn.innerHTML = '▶';
-                    cancelAnimationFrame(playFrame);
-                }
+                if (audio.paused) { audio.play(); playBtn.innerHTML = '⏸'; }
+                else { audio.pause(); playBtn.innerHTML = '▶'; }
             };
-
-            audio.onended = () => {
-                playBtn.innerHTML = '▶';
-                cancelAnimationFrame(playFrame);
-                viz.querySelectorAll('.pb-bar').forEach(b => b.style.height = '4px');
-            };
-
             container.appendChild(playBtn);
             container.appendChild(viz);
             container.appendChild(durationSpan);
@@ -805,7 +755,6 @@
             container.className = 'media-container';
             const el = document.createElement(type === 'image' ? 'img' : 'video');
             el.src = src; el.className = 'media-content';
-            if(type === 'video') { el.muted = true; el.autoplay = true; el.loop = true; }
             container.onclick = () => {
                 if (!el.classList.contains('revealed')) el.classList.add('revealed');
                 else showFullScreen(src, type);
@@ -833,18 +782,6 @@
             }
         });
 
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file || !conn?.open) return;
-            const reader = new FileReader();
-            const type = file.type.startsWith('video/') ? 'video' : 'image';
-            reader.onload = (ev) => {
-                conn.send((type === 'video' ? 'WHISPER_VID_' : 'WHISPER_IMG_') + ev.target.result);
-                appendMediaMessage(ev.target.result, type, 'sent');
-            };
-            reader.readAsDataURL(file);
-        });
-
         function toggleConfirm(show) { confirmModal.style.display = show ? 'flex' : 'none'; }
         function exitChatroom() { location.reload(); }
         function copyCode() {
@@ -854,7 +791,7 @@
             setTimeout(() => document.getElementById('my-code').textContent = code, 1000);
         }
 
-        window.onload = initPeer;
+        window.onload = () => initPeer();
     </script>
 </body>
 </html>
