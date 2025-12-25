@@ -213,7 +213,7 @@
         /* Modal UI */
         #p2p-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; }
         .modal-content { background: var(--modal-bg); border: 1px solid #333; padding: 30px; border-radius: 35px; width: 90%; max-width: 400px; text-align: center; animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .code-box { background: #111; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 1.2rem; margin: 10px 0 20px; border: 1px dashed #444; cursor: pointer; color: var(--accent-blue); letter-spacing: 2px; }
+        .code-box { background: #111; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 1.2rem; margin: 10px 0 20px; border: 1px dashed #444; cursor: pointer; color: var(--accent-blue); letter-spacing: 2px; text-transform: uppercase; }
         
         .prefs-list { margin: 25px 0 0; display: flex; flex-direction: column; gap: 8px; }
         .pref-item { display: flex; align-items: center; justify-content: space-between; background: #111; padding: 14px 18px; border-radius: 15px; }
@@ -239,7 +239,10 @@
             100% { box-shadow: 0 4px 20px -5px rgba(255, 0, 255, 0.4); }
         }
 
-        #msg-input { flex: 1; background: transparent; border: none; outline: none; color: white; padding: 0 20px; font-size: 1rem; }
+        /* CAPS LOCK ENFORCEMENT */
+        #msg-input, #peer-code-input { flex: 1; background: transparent; border: none; outline: none; color: white; padding: 0 20px; font-size: 1rem; text-transform: uppercase; }
+        #peer-code-input::placeholder, #msg-input::placeholder { text-transform: none; }
+
         .action-btn { background: transparent; border: none; color: #666; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; padding: 0 15px; cursor: pointer; }
         .action-btn svg { width: 22px; height: 22px; fill: currentColor; }
 
@@ -282,7 +285,7 @@
             <h2 style="margin-bottom: 25px;">Whisper Fearlessly.</h2>
             <p style="font-size: 0.7rem; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Your connection code:</p>
             <div class="code-box" id="my-code" onclick="copyCode()">...</div>
-            <input type="text" id="peer-code-input" placeholder="Paste Friend's Code" style="border: 1px solid #333; margin: 0 0 12px; background: #000; width: 100%; padding: 16px; border-radius: 18px; color: white; outline: none; text-align: center;">
+            <input type="text" id="peer-code-input" placeholder="PASTE FRIEND'S CODE" style="border: 1px solid #333; margin: 0 0 12px; background: #000; width: 100%; padding: 16px; border-radius: 18px; color: white; outline: none; text-align: center;">
             <button class="btn" onclick="connectToPeer()">Connect Privately</button>
 
             <div class="prefs-list">
@@ -382,9 +385,19 @@
             visualizer.appendChild(bar);
         }
 
+        // MOBILE CONNECTION FIX: Adding ICE STUN Servers to bypass NAT/Firewalls
         function initPeer() {
             const shortId = Math.random().toString(36).substr(2, 6).toUpperCase();
-            peer = new Peer('WSP-' + shortId);
+            peer = new Peer('WSP-' + shortId, {
+                config: {
+                    'iceServers': [
+                        { url: 'stun:stun.l.google.com:19302' },
+                        { url: 'stun:stun1.l.google.com:19302' },
+                        { url: 'stun:stun2.l.google.com:19302' }
+                    ]
+                }
+            });
+
             peer.on('open', (id) => document.getElementById('my-code').textContent = id);
             
             peer.on('connection', (incomingConn) => { 
@@ -392,16 +405,25 @@
                 setupChatListeners(); 
             });
 
-            // Handle Incoming Calls
             peer.on('call', (incomingCall) => {
                 showIncomingCallUI(incomingCall);
+            });
+
+            peer.on('error', (err) => {
+                console.error("Peer Error:", err.type);
+                if(err.type === 'peer-unavailable') {
+                    appendMessage("Friend is offline or code is invalid.", "system");
+                }
             });
         }
 
         function connectToPeer() {
-            const peerId = document.getElementById('peer-code-input').value.trim();
-            if (!peerId) return;
-            conn = peer.connect(peerId);
+            const rawId = document.getElementById('peer-code-input').value.trim();
+            const peerId = rawId.startsWith('WSP-') ? rawId : 'WSP-' + rawId.toUpperCase();
+            if (!rawId) return;
+            conn = peer.connect(peerId, {
+                reliable: true
+            });
             setupChatListeners();
         }
 
@@ -415,7 +437,9 @@
                 if(!localUserSentMessage) suggestionContainer.style.display = 'flex';
                 conn.on('data', handleIncomingData);
             });
+            
             conn.on('close', () => location.reload());
+            conn.on('error', () => location.reload());
         }
 
         // --- Real-time Call Functions ---
@@ -513,8 +537,8 @@
 
         function sendHello() {
             if (!conn?.open) return;
-            conn.send("Hello 👋");
-            appendMessage("Hello 👋", 'sent');
+            conn.send("HELLO 👋");
+            appendMessage("HELLO 👋", 'sent');
         }
 
         function markSent() {
@@ -679,7 +703,7 @@
             if (type === 'sent') markSent();
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${type}`;
-            msgDiv.textContent = text;
+            msgDiv.textContent = text.toUpperCase();
             chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
@@ -714,8 +738,9 @@
 
         msgInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && msgInput.value.trim() !== '' && conn?.open) {
-                conn.send(msgInput.value.trim());
-                appendMessage(msgInput.value.trim(), 'sent');
+                const val = msgInput.value.trim().toUpperCase();
+                conn.send(val);
+                appendMessage(val, 'sent');
                 msgInput.value = '';
             }
         });
