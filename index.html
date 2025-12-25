@@ -455,18 +455,13 @@
         let lastAttemptedCode = "";
         let typingTimeout;
 
-        // 1) Logic to handle paste and remove "WSP-"
         peerCodeInput.addEventListener('input', function(e) {
             let val = this.value;
-            
-            // Check if user pasted a full "WSP-XXXXXX" while "WSP-" was already there
             if (val.startsWith('WSP-WSP-')) {
-                val = val.substring(4); // Remove first 'WSP-'
+                val = val.substring(4);
             } else if (val.includes('WSP-') && val.indexOf('WSP-') > 0) {
-                // Remove any 'WSP-' that appears anywhere else (like middle paste)
                 val = 'WSP-' + val.split('WSP-').join('');
             }
-            
             if (!val.startsWith('WSP-')) {
                 val = 'WSP-';
             }
@@ -554,7 +549,6 @@
                 appendMessage("Secure connection established.", 'system');
                 if(!localUserSentMessage) suggestionContainer.style.display = 'flex';
                 conn.on('data', handleIncomingData);
-                // Ensure sender also handles remote disconnects
                 conn.on('close', () => handleDisconnect());
             });
 
@@ -577,17 +571,21 @@
             conn.on('close', () => handleDisconnect());
         }
 
-        // Renamed from handleRemoteDisconnect to handleDisconnect to be used by both local and remote events
         function handleDisconnect() {
-            if (msgInput.disabled) return; // Prevent double execution if triggered by both local call and event
+            if (msgInput.disabled) return; 
 
             const autoDelete = document.getElementById('pref-auto-delete').checked;
             
-            // Only clear chat if preference is enabled
             if (autoDelete) {
+                // Clear the container content but keep indicator for future append if needed
+                const indicator = typingIndicator.cloneNode(true);
+                const suggestions = suggestionContainer.cloneNode(true);
                 chatContainer.innerHTML = '';
+                chatContainer.appendChild(indicator);
+                chatContainer.appendChild(suggestions);
             }
             
+            // This message MUST appear regardless of auto-delete choice
             appendMessage("Private connection ended. This chat left no traces.", 'system');
             
             msgInput.disabled = true;
@@ -733,8 +731,11 @@
         }
 
         function showTypingIndicator(show) {
-            typingIndicator.style.display = show ? 'block' : 'none';
-            if (show) chatContainer.scrollTop = chatContainer.scrollHeight;
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.style.display = show ? 'block' : 'none';
+                if (show) chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
         }
 
         function sendHello() {
@@ -859,8 +860,9 @@
             container.appendChild(durationSpan);
             msgDiv.appendChild(container);
             
-            // Insert before typing indicator
-            chatContainer.insertBefore(msgDiv, typingIndicator);
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) chatContainer.insertBefore(msgDiv, indicator);
+            else chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
@@ -871,8 +873,9 @@
             msgDiv.className = `message ${type}`;
             msgDiv.textContent = text;
             
-            // Insert before typing indicator
-            chatContainer.insertBefore(msgDiv, typingIndicator);
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) chatContainer.insertBefore(msgDiv, indicator);
+            else chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
@@ -892,8 +895,9 @@
             container.appendChild(el);
             msgDiv.appendChild(container);
             
-            // Insert before typing indicator
-            chatContainer.insertBefore(msgDiv, typingIndicator);
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) chatContainer.insertBefore(msgDiv, indicator);
+            else chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
@@ -905,23 +909,19 @@
             viewer.appendChild(el); viewer.style.display = 'flex';
         }
 
-        // Handle typing events
         msgInput.addEventListener('input', () => {
             if (!conn?.open) return;
-            
-            // Signal typing ON
             conn.send('WHISPER_TYPING_ON');
-
             clearTimeout(typingTimeout);
             typingTimeout = setTimeout(() => {
                 conn.send('WHISPER_TYPING_OFF');
-            }, 2000); // 2 seconds of inactivity stops indicator
+            }, 2000);
         });
 
         msgInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && msgInput.value.trim() !== '' && conn?.open) {
                 const val = msgInput.value.trim();
-                conn.send('WHISPER_TYPING_OFF'); // Immediately stop indicator on send
+                conn.send('WHISPER_TYPING_OFF');
                 conn.send(val);
                 appendMessage(val, 'sent');
                 msgInput.value = '';
@@ -942,27 +942,7 @@
         });
 
         function toggleConfirm(show) { confirmModal.style.display = show ? 'flex' : 'none'; }
-        
-        // Updated Exit function for Soft Exit
-        function exitChatroom() { 
-            toggleConfirm(false); // Hide the confirmation modal
-            
-            if (currentCall) {
-                currentCall.close();
-            }
-
-            if (conn) {
-                conn.close(); // Close the connection
-            }
-
-            if (peer) {
-                peer.destroy(); // Destroy peer to fully sever ties
-            }
-
-            // Immediately handle UI update locally
-            handleDisconnect();
-        }
-
+        function exitChatroom() { location.reload(); }
         function copyCode() {
             const code = document.getElementById('my-code').textContent;
             navigator.clipboard.writeText(code);
