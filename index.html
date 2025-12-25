@@ -174,18 +174,36 @@
         .confirm-actions { display: flex; gap: 10px; margin-top: 20px; }
         .confirm-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; }
 
-        /* Call Overlay UI */
+        /* Call Overlay UI with Ripple Effect */
         #call-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); display: none; flex-direction: column;
             align-items: center; justify-content: center; z-index: 400; backdrop-filter: blur(15px);
         }
-        .call-avatar { width: 100px; height: 100px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border: 2px solid var(--accent-blue); }
-        .call-status { font-size: 1.2rem; font-weight: 600; margin-bottom: 50px; }
-        .call-controls { display: flex; gap: 30px; }
+        .call-avatar-wrapper { position: relative; width: 120px; height: 120px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; }
+        .call-ripple {
+            position: absolute; width: 100%; height: 100%; border: 2px solid var(--accent-blue);
+            border-radius: 50%; opacity: 0; transform: scale(1); pointer-events: none;
+            transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+        }
+        .call-avatar { 
+            position: relative; width: 100px; height: 100px; background: #222; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            border: 2px solid var(--accent-blue); z-index: 2;
+        }
+        .call-status { font-size: 1.2rem; font-weight: 600; margin-bottom: 50px; z-index: 2; }
+        .call-controls { display: flex; gap: 30px; z-index: 2; }
         .call-action-btn { width: 65px; height: 65px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; }
         .btn-hangup { background: var(--record-red); }
         .btn-accept { background: var(--call-green); }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none; width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.1);
+            border-top: 3px solid white; border-radius: 50%; animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
         /* Voice Bar UI */
         .voice-active-area {
@@ -225,7 +243,7 @@
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--accent-blue); }
         input:checked + .slider:before { transform: translateX(20px); }
-        .btn { background: var(--text-primary); color: black; border: none; padding: 16px 24px; border-radius: 30px; font-weight: 600; cursor: pointer; width: 100%; }
+        .btn { background: var(--text-primary); color: black; border: none; padding: 16px 24px; border-radius: 30px; font-weight: 600; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
         .input-wrapper { padding: 10px 15px 35px 15px; background-color: var(--bg-color); z-index: 60; }
         .input-container { 
@@ -239,7 +257,6 @@
             100% { box-shadow: 0 4px 20px -5px rgba(255, 0, 255, 0.4); }
         }
 
-        /* CAPS LOCK ENFORCEMENT */
         #msg-input, #peer-code-input { flex: 1; background: transparent; border: none; outline: none; color: white; padding: 0 20px; font-size: 1rem; text-transform: uppercase; }
         #peer-code-input::placeholder, #msg-input::placeholder { text-transform: none; }
 
@@ -260,8 +277,12 @@
 
     <!-- Call Overlay -->
     <div id="call-overlay">
-        <div class="call-avatar">
-            <svg viewBox="0 0 24 24" fill="white" width="50" height="50"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <div class="call-avatar-wrapper">
+            <div class="call-ripple" id="ripple-1"></div>
+            <div class="call-ripple" id="ripple-2"></div>
+            <div class="call-avatar">
+                <svg viewBox="0 0 24 24" fill="white" width="50" height="50"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
         </div>
         <div class="call-status" id="call-status">Incoming Call...</div>
         <div class="call-controls" id="call-controls">
@@ -286,7 +307,10 @@
             <p style="font-size: 0.7rem; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Your connection code:</p>
             <div class="code-box" id="my-code" onclick="copyCode()">...</div>
             <input type="text" id="peer-code-input" placeholder="PASTE FRIEND'S CODE" style="border: 1px solid #333; margin: 0 0 12px; background: #000; width: 100%; padding: 16px; border-radius: 18px; color: white; outline: none; text-align: center;">
-            <button class="btn" onclick="connectToPeer()">Connect Privately</button>
+            <button class="btn" id="connect-btn" onclick="handleConnectClick()">
+                <span id="btn-text">Connect Privately</span>
+                <div class="spinner" id="btn-spinner"></div>
+            </button>
 
             <div class="prefs-list">
                 <div class="pref-item">
@@ -377,6 +401,7 @@
         let localUserSentMessage = false;
         let currentCall = null;
         let localStream = null;
+        let callAnalyser, callDataArray, callAnimationFrame;
 
         // Visualizer Bars Initialization
         for (let i = 0; i < 25; i++) {
@@ -385,7 +410,6 @@
             visualizer.appendChild(bar);
         }
 
-        // MOBILE CONNECTION FIX: Adding ICE STUN Servers to bypass NAT/Firewalls
         function initPeer() {
             const shortId = Math.random().toString(36).substr(2, 6).toUpperCase();
             peer = new Peer('WSP-' + shortId, {
@@ -410,20 +434,45 @@
             });
 
             peer.on('error', (err) => {
-                console.error("Peer Error:", err.type);
+                resetConnectButton();
                 if(err.type === 'peer-unavailable') {
                     appendMessage("Friend is offline or code is invalid.", "system");
                 }
             });
         }
 
+        function handleConnectClick() {
+            const btnText = document.getElementById('btn-text');
+            const btnSpinner = document.getElementById('btn-spinner');
+            const connectBtn = document.getElementById('connect-btn');
+
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'block';
+            connectBtn.disabled = true;
+
+            // Fake loading for 2.5 seconds before attempting P2P
+            setTimeout(() => {
+                connectToPeer();
+            }, 2500);
+        }
+
+        function resetConnectButton() {
+            const btnText = document.getElementById('btn-text');
+            const btnSpinner = document.getElementById('btn-spinner');
+            const connectBtn = document.getElementById('connect-btn');
+            btnText.style.display = 'block';
+            btnSpinner.style.display = 'none';
+            connectBtn.disabled = false;
+        }
+
         function connectToPeer() {
             const rawId = document.getElementById('peer-code-input').value.trim();
             const peerId = rawId.startsWith('WSP-') ? rawId : 'WSP-' + rawId.toUpperCase();
-            if (!rawId) return;
-            conn = peer.connect(peerId, {
-                reliable: true
-            });
+            if (!rawId) {
+                resetConnectButton();
+                return;
+            }
+            conn = peer.connect(peerId, { reliable: true });
             setupChatListeners();
         }
 
@@ -439,10 +488,13 @@
             });
             
             conn.on('close', () => location.reload());
-            conn.on('error', () => location.reload());
+            conn.on('error', () => {
+                resetConnectButton();
+                location.reload();
+            });
         }
 
-        // --- Real-time Call Functions ---
+        // --- Real-time Call Functions with Ripple Logic ---
 
         async function initiateVoiceCall() {
             if (!conn?.open) return;
@@ -500,6 +552,40 @@
             const audio = new Audio();
             audio.srcObject = remoteStream;
             audio.play();
+
+            // Set up Loudness Analysis for Ripple
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const source = ctx.createMediaStreamSource(remoteStream);
+            callAnalyser = ctx.createAnalyser();
+            callAnalyser.fftSize = 256;
+            source.connect(callAnalyser);
+            callDataArray = new Uint8Array(callAnalyser.frequencyBinCount);
+            
+            animateCallRipple();
+        }
+
+        function animateCallRipple() {
+            if (!callAnalyser) return;
+            callAnimationFrame = requestAnimationFrame(animateCallRipple);
+            callAnalyser.getByteFrequencyData(callDataArray);
+            
+            let sum = 0;
+            for(let i=0; i<callDataArray.length; i++) sum += callDataArray[i];
+            const average = sum / callDataArray.length;
+            const level = average / 128; // 0 to 2 approx
+
+            const ripple1 = document.getElementById('ripple-1');
+            const ripple2 = document.getElementById('ripple-2');
+
+            if (level > 0.1) {
+                ripple1.style.opacity = (level * 0.5);
+                ripple1.style.transform = `scale(${1 + level * 0.8})`;
+                ripple2.style.opacity = (level * 0.3);
+                ripple2.style.transform = `scale(${1 + level * 1.5})`;
+            } else {
+                ripple1.style.opacity = 0;
+                ripple2.style.opacity = 0;
+            }
         }
 
         function showCallOverlay(status) {
@@ -521,9 +607,11 @@
         function endCall() {
             if (currentCall) currentCall.close();
             if (localStream) localStream.getTracks().forEach(t => t.stop());
+            if (callAnimationFrame) cancelAnimationFrame(callAnimationFrame);
             callOverlay.style.display = 'none';
             currentCall = null;
             localStream = null;
+            callAnalyser = null;
         }
 
         // --- Message Handling ---
