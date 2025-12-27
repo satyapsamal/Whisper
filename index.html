@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -951,7 +952,275 @@
         }
 
         window.onload = () => initPeer();
+// -----------------------------------------------------------------------------
+// WHISPER LOCAL METRICS MODULE
+// -----------------------------------------------------------------------------
+// INSTRUCTIONS: 
+// 1. Paste this entire script block at the very end of your index.html file,
+//    immediately before the closing </body> tag.
+// 2. Ensure it runs AFTER the main app script has loaded.
+// -----------------------------------------------------------------------------
+
+(function() {
+    'use strict';
+
+    // >>>> 1. SAFE STORAGE & STATE MANAGEMENT <<<<
+    const STORAGE_KEY = 'whisper_local_metrics_v1';
+    
+    // Default metrics state structure
+    const defaultState = {
+        text: { sent: 0, received: 0, totalChars: 0, backspaces: 0, typingSessions: 0, totalTypingTime: 0 },
+        voice_notes: { sent: 0, received: 0, totalDuration: 0, buckets: { short: 0, med: 0, long: 0 }, aborted: 0, rerecords: 0 },
+        media: { imgSent: 0, imgReceived: 0, vidSent: 0, vidReceived: 0, uploadFailures: 0, cancelCount: 0 },
+        // UPDATED: Calls metrics strictly limited to existing features + time of day
+        calls: { 
+            initiated: 0, 
+            received: 0, 
+            accepted: 0, 
+            totalDuration: 0, 
+            drops: 0,
+            timeOfDay: { morning: 0, day: 0, evening: 0, night: 0 } 
+        },
+        session: { count: 0, totalDuration: 0, lastLogin: Date.now(), quickExits: 0 },
+        device: { type: 'unknown', inputPreference: 'none', orientation: 'landscape' },
+        system: { consentVersion: '1.0', dataClears: 0, errors: 0 }
+    };
+
+    // Initialize or Load Metrics
+    let metrics = defaultState;
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) metrics = { ...defaultState, ...JSON.parse(stored) };
+    } catch (e) { console.warn('Metrics storage unavailable'); }
+
+    // Session Start Tracking
+    metrics.session.count++;
+    metrics.session.lastLogin = Date.now();
+    const sessionStart = Date.now();
+    let currentTypingStart = null;
+    let callStartTime = null;
+
+    // Helper: Safe Save
+    const saveMetrics = () => {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(metrics)); } 
+        catch (e) { /* Storage likely disabled/full - fail silently as per requirements */ }
+    };
+
+    // Helper: Device Detection (Run once)
+    const detectDevice = () => {
+        const ua = navigator.userAgent;
+        metrics.device.type = /Mobile|Android|iP(hone|od)|IEMobile/i.test(ua) ? 'mobile' : 'desktop';
+        metrics.device.orientation = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+        saveMetrics();
+    };
+    detectDevice();
+
+    // Helper: Time of Day Bucket
+    const getTimeBucket = () => {
+        const hour = new Date().getHours();
+        if (hour >= 5 && hour < 12) return 'morning';
+        if (hour >= 12 && hour < 17) return 'day';
+        if (hour >= 17 && hour < 21) return 'evening';
+        return 'night';
+    };
+
+    // >>>> 2. MONKEY PATCHING (FUNCTION WRAPPING) <<<<
+    // This allows us to hook into logic without modifying the original source code.
+
+    // Wrap: appendMessage (Text)
+    if (typeof window.appendMessage === 'function') {
+        const originalAppendMessage = window.appendMessage;
+        window.appendMessage = function(text, type) {
+            try {
+                if (type === 'sent') {
+                    metrics.text.sent++;
+                    metrics.text.totalChars += (text || '').length;
+                } else if (type === 'received') {
+                    metrics.text.received++;
+                }
+                saveMetrics();
+            } catch(e) { metrics.system.errors++; }
+            return originalAppendMessage.apply(this, arguments);
+        };
+    }
+
+    // Wrap: appendAudioMessage (Voice Notes)
+    if (typeof window.appendAudioMessage === 'function') {
+        const originalAppendAudio = window.appendAudioMessage;
+        window.appendAudioMessage = function(src, sender) {
+            try {
+                if (sender === 'sent') metrics.voice_notes.sent++;
+                else metrics.voice_notes.received++;
+                saveMetrics();
+            } catch(e) {}
+            return originalAppendAudio.apply(this, arguments);
+        };
+    }
+
+    // Wrap: appendMediaMessage (Images/Videos)
+    if (typeof window.appendMediaMessage === 'function') {
+        const originalAppendMedia = window.appendMediaMessage;
+        window.appendMediaMessage = function(src, type, sender) {
+            try {
+                if (type === 'image') sender === 'sent' ? metrics.media.imgSent++ : metrics.media.imgReceived++;
+                if (type === 'video') sender === 'sent' ? metrics.media.vidSent++ : metrics.media.vidReceived++;
+                saveMetrics();
+            } catch(e) {}
+            return originalAppendMedia.apply(this, arguments);
+        };
+    }
+
+    // Wrap: stopRecording (Voice Logic)
+    // We access the global 'startTime' variable from the original script here.
+    if (typeof window.stopRecording === 'function') {
+        const originalStopRecording = window.stopRecording;
+        window.stopRecording = function(send) {
+            try {
+                if (send && window.startTime) {
+                    const duration = (Date.now() - window.startTime) / 1000;
+                    metrics.voice_notes.totalDuration += duration;
+                    if (duration < 5) metrics.voice_notes.buckets.short++;
+                    else if (duration < 20) metrics.voice_notes.buckets.med++;
+                    else metrics.voice_notes.buckets.long++;
+                    metrics.device.inputPreference = 'voice';
+                } else {
+                    metrics.voice_notes.aborted++;
+                }
+                saveMetrics();
+            } catch(e) {}
+            return originalStopRecording.apply(this, arguments);
+        };
+    }
+
+    // Wrap: initiateVoiceCall (Call Start)
+    if (typeof window.initiateVoiceCall === 'function') {
+        const originalInitCall = window.initiateVoiceCall;
+        window.initiateVoiceCall = async function() {
+            try {
+                metrics.calls.initiated++;
+                metrics.calls.timeOfDay[getTimeBucket()]++; // Track TOD usage
+                callStartTime = Date.now(); // Optimistic start
+                saveMetrics();
+            } catch(e) {}
+            return originalInitCall.apply(this, arguments);
+        };
+    }
+
+    // Wrap: acceptIncomingCall (Call Accept)
+    if (typeof window.acceptIncomingCall === 'function') {
+        const originalAcceptCall = window.acceptIncomingCall;
+        window.acceptIncomingCall = async function() {
+            try {
+                metrics.calls.received++;
+                metrics.calls.accepted++;
+                metrics.calls.timeOfDay[getTimeBucket()]++; // Track TOD usage
+                callStartTime = Date.now();
+                saveMetrics();
+            } catch(e) {}
+            return originalAcceptCall.apply(this, arguments);
+        };
+    }
+
+    // Wrap: endCall (Call End)
+    if (typeof window.endCall === 'function') {
+        const originalEndCall = window.endCall;
+        window.endCall = function() {
+            try {
+                if (callStartTime) {
+                    const duration = (Date.now() - callStartTime) / 1000;
+                    if (duration > 0) metrics.calls.totalDuration += duration;
+                    callStartTime = null;
+                } else {
+                    metrics.calls.drops++; // Ended without start time implies drop or reject
+                }
+                saveMetrics();
+            } catch(e) {}
+            return originalEndCall.apply(this, arguments);
+        };
+    }
+
+    // >>>> 3. DOM EVENT LISTENERS (NON-INTRUSIVE) <<<<
+    
+    // Typing Analysis
+    const msgInput = document.getElementById('msg-input');
+    if (msgInput) {
+        msgInput.addEventListener('keydown', (e) => {
+            // Track Backspaces (Editing frequency)
+            if (e.key === 'Backspace') metrics.text.backspaces++;
+            
+            // Track Typing Time
+            if (!currentTypingStart) {
+                currentTypingStart = Date.now();
+                metrics.text.typingSessions++;
+            }
+            metrics.device.inputPreference = 'text';
+        });
+
+        // Reset typing timer on send (Enter)
+        msgInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && currentTypingStart) {
+                metrics.text.totalTypingTime += (Date.now() - currentTypingStart);
+                currentTypingStart = null;
+            }
+        });
+        
+        // Handle blur as end of typing session
+        msgInput.addEventListener('blur', () => {
+            if (currentTypingStart) {
+                metrics.text.totalTypingTime += (Date.now() - currentTypingStart);
+                currentTypingStart = null;
+            }
+        });
+    }
+
+    // Media Input Tracking
+    const fileInput = document.getElementById('file-input');
+    if (fileInput) {
+        fileInput.addEventListener('click', () => {
+            // Heuristic: Clicking file input counts as intent, cancellation tracked if change doesn't fire soon (complex to track perfectly without UI changes, so we track 'cancel' as explicit cancel button clicks elsewhere if available, or just lack of 'send')
+        });
+        // Note: Actual sends are tracked via the wrapped appendMediaMessage
+    }
+
+    // Session End Tracking
+    window.addEventListener('beforeunload', () => {
+        const sessionDur = (Date.now() - sessionStart) / 1000;
+        metrics.session.totalDuration += sessionDur;
+        
+        // "Panic" or Quick Exit Detection (< 5 seconds)
+        if (sessionDur < 5) metrics.session.quickExits++;
+        
+        saveMetrics();
+    });
+
+    // Interaction Tracking (Bubbled)
+    document.body.addEventListener('click', (e) => {
+        // Track generic interaction method
+        if (e.pointerType === 'touch') metrics.device.inputPreference = 'touch';
+        else if (e.pointerType === 'mouse') metrics.device.inputPreference = 'mouse';
+        
+        // Track specific ID clicks for aborted actions
+        if (e.target.id === 'exit-btn') {
+            // User clicked exit arrow
+        }
+    }, { passive: true }); // Passive to ensure no performance hit
+
+    // Global Namespace for debugging (console access)
+    window.__whisperMetrics = {
+        get: () => metrics,
+        clear: () => {
+            localStorage.removeItem(STORAGE_KEY);
+            metrics = defaultState;
+            metrics.system.dataClears++;
+            console.log('Local metrics cleared.');
+        }
+    };
+
+    console.log('Whisper Local Metrics Active.');
+
+})();
     </script>
 </body>
 </html>
+
 
