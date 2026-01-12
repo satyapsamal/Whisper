@@ -148,11 +148,30 @@
             animation: fadeIn 0.2s ease;
             position: relative;
             overflow-wrap: break-word;
+            display: flex;
+            flex-direction: column;
         }
 
         .message.sent { align-self: flex-end; background: var(--accent-blue); border-bottom-right-radius: 4px; }
         .message.received { align-self: flex-start; background: var(--bubble-bg); border-bottom-left-radius: 4px; }
-        .message.system { align-self: center; background: transparent; color: #777; font-size: 0.75rem; text-align: center; border: none; margin: 10px 0; line-height: 1.6; }
+        .message.system { align-self: center; background: transparent; color: #777; font-size: 0.75rem; text-align: center; border: none; margin: 10px 0; line-height: 1.6; display: block; }
+
+        /* Meta Data: Time & Seen */
+        .msg-meta {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            font-size: 0.65rem;
+            opacity: 0.8;
+            align-self: flex-end;
+        }
+        .msg-time { font-weight: 500; }
+        .msg-seen { color: #fff; font-weight: 600; display: none; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* Show seen only on sent messages when active */
+        .message.sent .msg-seen.active { display: block; }
 
         /* Typing Indicator Styles */
         .typing-bubble {
@@ -300,66 +319,11 @@
         @keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         #media-viewer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(10px); }
         #media-viewer img, #media-viewer video { max-width: 95%; max-height: 90%; border-radius: 10px; }
-
-        /* AD OVERLAY STYLES */
-        #ad-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.98); z-index: 9999;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-        }
-        #ad-video-container {
-            width: 90%; max-width: 600px; aspect-ratio: 16/9; background: black;
-            position: relative; border-radius: 12px; overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-            border: 1px solid #333;
-        }
-        #ad-video { width: 100%; height: 100%; object-fit: cover; }
-        
-        #ad-text-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: black;
-            display: none;
-            align-items: center; justify-content: center;
-            flex-direction: column;
-            z-index: 5;
-        }
-        #ad-text-layer h2 {
-            color: white; font-family: 'Montserrat', sans-serif;
-            font-weight: 600; font-size: 2rem;
-            text-align: center; margin: 0;
-            text-transform: none;
-            letter-spacing: 0.5px;
-        }
-
-        #ad-skip-btn {
-            position: absolute; bottom: 20px; right: 20px;
-            background: rgba(30,30,30,0.8); color: white; border: 1px solid rgba(255,255,255,0.2);
-            padding: 12px 24px; border-radius: 30px; font-size: 0.85rem; font-weight: 600;
-            cursor: not-allowed; opacity: 0.6; font-family: 'Montserrat', sans-serif;
-            pointer-events: none; transition: all 0.3s ease;
-            backdrop-filter: blur(5px);
-            z-index: 10;
-        }
-        #ad-skip-btn.active {
-            cursor: pointer; opacity: 1; background: var(--accent-blue); border-color: var(--accent-blue);
-            pointer-events: auto; transform: scale(1.05);
-        }
     </style>
 </head>
 <body class="modal-active">
 
     <div id="media-viewer" onclick="this.style.display='none'"></div>
-
-    <!-- AD OVERLAY DOM -->
-    <div id="ad-overlay">
-        <div id="ad-video-container">
-            <video id="ad-video" playsinline webkit-playsinline></video>
-            <div id="ad-text-layer">
-                <h2>Whisper. Speak freely.</h2>
-            </div>
-            <button id="ad-skip-btn">Skip ad in 12 sec</button>
-        </div>
-    </div>
 
     <div id="call-overlay">
         <div class="call-avatar-wrapper">
@@ -505,6 +469,7 @@
         let currentCall = null;
         let localStream = null;
         let callAudioCtx, callAnalyser, callDataArray, callAnimFrame;
+        let pendingSeenReceipt = false;
         
         let connectionAttempts = 0;
         let lastAttemptedCode = "";
@@ -529,10 +494,65 @@
             }
         });
 
+        // Close connection on tab/window close
+        window.addEventListener('beforeunload', () => {
+            if (conn && conn.open) {
+                conn.send('WHISPER_EXIT');
+            }
+        });
+
+        // Visibility Change Listener for Real Read Receipts
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && pendingSeenReceipt) {
+                if (conn && conn.open) {
+                    conn.send('WHISPER_SEEN');
+                    pendingSeenReceipt = false;
+                }
+            }
+        });
+
+        function sendSeenIfVisible() {
+            if (document.visibilityState === 'visible') {
+                if(conn && conn.open) conn.send('WHISPER_SEEN');
+            } else {
+                pendingSeenReceipt = true;
+            }
+        }
+
         for (let i = 0; i < 25; i++) {
             const bar = document.createElement('div');
             bar.className = 'v-bar';
             visualizer.appendChild(bar);
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function createMetaElement(isSent) {
+            const meta = document.createElement('div');
+            meta.className = 'msg-meta';
+            const time = document.createElement('span');
+            time.className = 'msg-time';
+            time.textContent = getCurrentTime();
+            meta.appendChild(time);
+            
+            if (isSent) {
+                const seen = document.createElement('span');
+                seen.className = 'msg-seen';
+                seen.textContent = 'SEEN';
+                meta.appendChild(seen);
+            }
+            return meta;
+        }
+
+        function markLastSeen() {
+            const sentMessages = document.querySelectorAll('.message.sent .msg-seen');
+            if (sentMessages.length > 0) {
+                const last = sentMessages[sentMessages.length - 1];
+                last.classList.add('active');
+            }
         }
 
         function initPeer() {
@@ -605,9 +625,6 @@
                 if(!localUserSentMessage) suggestionContainer.style.display = 'flex';
                 conn.on('data', handleIncomingData);
                 conn.on('close', () => handleDisconnect());
-                
-                // TRIGGER AD SEQUENCE
-                scheduleAd();
             });
 
             conn.on('error', () => {
@@ -625,9 +642,6 @@
                 appendMessage("Friend connected. Chat is live.", 'system');
                 if(!localUserSentMessage) suggestionContainer.style.display = 'flex';
                 conn.on('data', handleIncomingData);
-
-                // TRIGGER AD SEQUENCE
-                scheduleAd();
             });
             conn.on('close', () => handleDisconnect());
         }
@@ -638,7 +652,6 @@
             const autoDelete = document.getElementById('pref-auto-delete').checked;
             
             if (autoDelete) {
-                // Clear the container content but keep indicator for future append if needed
                 const indicator = typingIndicator.cloneNode(true);
                 const suggestions = suggestionContainer.cloneNode(true);
                 chatContainer.innerHTML = '';
@@ -646,7 +659,6 @@
                 chatContainer.appendChild(suggestions);
             }
             
-            // This message MUST appear regardless of auto-delete choice
             appendMessage("Private connection ended. This chat left no traces.", 'system');
             
             msgInput.disabled = true;
@@ -662,7 +674,7 @@
                 localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 currentCall = peer.call(conn.peer, localStream);
                 showCallOverlay("Calling...");
-                renderCallControls([ { label: '✕', class: 'btn-hangup', action: endCall } ]);
+                renderCallControls([ { label: '✕', class: 'btn-hangup', action: () => endCall(false) } ]);
                 
                 setupRippleFeedback(localStream);
 
@@ -673,7 +685,7 @@
                     audio.srcObject = remoteStream;
                     audio.play();
                 });
-                currentCall.on('close', endCall);
+                currentCall.on('close', () => endCall(true));
             } catch (err) { appendMessage("Could not access microphone.", "system"); }
         }
 
@@ -681,7 +693,7 @@
             currentCall = incomingCall;
             showCallOverlay("Someone’s calling you privately");
             renderCallControls([
-                { label: '✕', class: 'btn-hangup', action: () => { currentCall.close(); endCall(); } },
+                { label: '✕', class: 'btn-hangup', action: () => { currentCall.close(); endCall(false); } },
                 { label: '✓', class: 'btn-accept', action: acceptIncomingCall }
             ]);
         }
@@ -691,7 +703,7 @@
                 localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 currentCall.answer(localStream);
                 callStatus.textContent = "Connecting...";
-                renderCallControls([ { label: '✕', class: 'btn-hangup', action: endCall } ]);
+                renderCallControls([ { label: '✕', class: 'btn-hangup', action: () => endCall(false) } ]);
 
                 currentCall.on('stream', (remoteStream) => {
                     setupRippleFeedback(remoteStream);
@@ -700,8 +712,8 @@
                     audio.srcObject = remoteStream;
                     audio.play();
                 });
-                currentCall.on('close', endCall);
-            } catch (err) { endCall(); }
+                currentCall.on('close', () => endCall(true));
+            } catch (err) { endCall(false); }
         }
 
         function setupRippleFeedback(stream) {
@@ -745,14 +757,26 @@
             }
         }
 
-        function endCall() {
+        function endCall(isRemote = false) {
+            if (!isRemote && conn && conn.open) {
+                conn.send('WHISPER_CALL_TERMINATED');
+            }
+
             if (currentCall) currentCall.close();
-            if (localStream) localStream.getTracks().forEach(t => t.stop());
+            if (localStream) {
+                localStream.getTracks().forEach(t => t.stop());
+                localStream = null;
+            }
             if (callAnimFrame) cancelAnimationFrame(callAnimFrame);
             if (callAudioCtx) callAudioCtx.close();
+            
             callOverlay.style.display = 'none';
             currentCall = null;
-            appendMessage("The private call has ended", 'system');
+            
+            const lastMsg = chatContainer.lastElementChild;
+            if (lastMsg && lastMsg.textContent !== "Private call ended") {
+                appendMessage("Private call ended", 'system');
+            }
         }
 
         function showCallOverlay(status) {
@@ -772,6 +796,21 @@
         }
 
         function handleIncomingData(data) {
+            if (data === 'WHISPER_EXIT') {
+                handleDisconnect();
+                return;
+            }
+
+            if (data === 'WHISPER_CALL_TERMINATED') {
+                endCall(true); 
+                return;
+            }
+
+            if (data === 'WHISPER_SEEN') {
+                markLastSeen();
+                return;
+            }
+
             if (data === 'WHISPER_TYPING_ON') {
                 showTypingIndicator(true);
             } else if (data === 'WHISPER_TYPING_OFF') {
@@ -779,15 +818,19 @@
             } else if (typeof data === 'string' && data.startsWith('WHISPER_AUD_')) {
                 showTypingIndicator(false);
                 appendAudioMessage(data.replace('WHISPER_AUD_', ''), 'received');
+                sendSeenIfVisible();
             } else if (typeof data === 'string' && data.startsWith('WHISPER_IMG_')) {
                 showTypingIndicator(false);
                 appendMediaMessage(data.replace('WHISPER_IMG_', ''), 'image', 'received');
+                sendSeenIfVisible();
             } else if (typeof data === 'string' && data.startsWith('WHISPER_VID_')) {
                 showTypingIndicator(false);
                 appendMediaMessage(data.replace('WHISPER_VID_', ''), 'video', 'received');
+                sendSeenIfVisible();
             } else {
                 showTypingIndicator(false);
                 appendMessage(data, 'received');
+                sendSeenIfVisible();
             }
         }
 
@@ -920,7 +963,8 @@
             container.appendChild(viz);
             container.appendChild(durationSpan);
             msgDiv.appendChild(container);
-            
+            msgDiv.appendChild(createMetaElement(sender === 'sent'));
+
             const indicator = document.getElementById('typing-indicator');
             if (indicator) chatContainer.insertBefore(msgDiv, indicator);
             else chatContainer.appendChild(msgDiv);
@@ -933,7 +977,10 @@
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${type}`;
             msgDiv.textContent = text;
-            
+            if (type !== 'system') {
+                msgDiv.appendChild(createMetaElement(type === 'sent'));
+            }
+
             const indicator = document.getElementById('typing-indicator');
             if (indicator) chatContainer.insertBefore(msgDiv, indicator);
             else chatContainer.appendChild(msgDiv);
@@ -955,7 +1002,8 @@
             };
             container.appendChild(el);
             msgDiv.appendChild(container);
-            
+            msgDiv.appendChild(createMetaElement(sender === 'sent'));
+
             const indicator = document.getElementById('typing-indicator');
             if (indicator) chatContainer.insertBefore(msgDiv, indicator);
             else chatContainer.appendChild(msgDiv);
@@ -1011,120 +1059,15 @@
             setTimeout(() => document.getElementById('my-code').textContent = code, 1000);
         }
 
-        // ============================================
-        // ADVERTISING LOGIC MODULE
-        // ============================================
-        let adTimeout;
-        
-        function scheduleAd() {
-            // Trigger 5 seconds after connection
-            clearTimeout(adTimeout);
-            adTimeout = setTimeout(startAdSequence, 5000);
-        }
-
-        function startAdSequence() {
-            const overlay = document.getElementById('ad-overlay');
-            const video = document.getElementById('ad-video');
-            const textLayer = document.getElementById('ad-text-layer');
-            const skipBtn = document.getElementById('ad-skip-btn');
-            
-            if(!overlay || !video || !skipBtn || !textLayer) return;
-
-            // State Setup
-            let isSkipped = false;
-            let countdown = 12;
-            let currentStep = 0; // 0: Video, 1: Text
-            let countdownInterval;
-
-            // Show Overlay
-            overlay.style.display = 'flex';
-            skipBtn.classList.remove('active');
-            skipBtn.textContent = `Skip ad in ${countdown} sec`;
-
-            // Countdown Logic
-            countdownInterval = setInterval(() => {
-                if(isSkipped) {
-                    clearInterval(countdownInterval);
-                    return;
-                }
-                countdown--;
-                if(countdown > 0) {
-                    skipBtn.textContent = `Skip ad in ${countdown} sec`;
-                } else {
-                    skipBtn.textContent = "Skip Ad";
-                    skipBtn.classList.add('active');
-                    clearInterval(countdownInterval);
-                }
-            }, 1000);
-
-            // Sequence Controller
-            function playNext() {
-                if(isSkipped) return;
-                
-                if (currentStep % 2 === 0) {
-                    // Even Step: Play Video (ad.mp4)
-                    video.style.display = 'block';
-                    textLayer.style.display = 'none';
-                    video.src = 'ad.mp4';
-                    video.play().catch(e => console.log("Ad autoplay restricted:", e));
-                    
-                    video.onended = () => {
-                        currentStep++;
-                        playNext();
-                    };
-
-                } else {
-                    // Odd Step: Show Text Ad (2 seconds)
-                    video.style.display = 'none';
-                    textLayer.style.display = 'flex'; 
-                    video.onended = null;
-
-                    setTimeout(() => {
-                        if(!isSkipped) {
-                            currentStep++;
-                            playNext();
-                        }
-                    }, 2000); // 2 Seconds
-                }
-            }
-
-            // Start Sequence
-            playNext();
-
-            // Click Handler
-            skipBtn.onclick = () => {
-                if(skipBtn.classList.contains('active')) {
-                    isSkipped = true;
-                    video.pause();
-                    video.src = ""; // Stop buffering
-                    overlay.style.display = 'none';
-                    video.onended = null;
-                }
-            };
-        }
-
         window.onload = () => initPeer();
-// -----------------------------------------------------------------------------
-// WHISPER LOCAL METRICS MODULE
-// -----------------------------------------------------------------------------
-// INSTRUCTIONS: 
-// 1. Paste this entire script block at the very end of your index.html file,
-//    immediately before the closing </body> tag.
-// 2. Ensure it runs AFTER the main app script has loaded.
-// -----------------------------------------------------------------------------
 
 (function() {
     'use strict';
-
-    // >>>> 1. SAFE STORAGE & STATE MANAGEMENT <<<<
     const STORAGE_KEY = 'whisper_local_metrics_v1';
-    
-    // Default metrics state structure
     const defaultState = {
         text: { sent: 0, received: 0, totalChars: 0, backspaces: 0, typingSessions: 0, totalTypingTime: 0 },
         voice_notes: { sent: 0, received: 0, totalDuration: 0, buckets: { short: 0, med: 0, long: 0 }, aborted: 0, rerecords: 0 },
         media: { imgSent: 0, imgReceived: 0, vidSent: 0, vidReceived: 0, uploadFailures: 0, cancelCount: 0 },
-        // UPDATED: Calls metrics strictly limited to existing features + time of day
         calls: { 
             initiated: 0, 
             received: 0, 
@@ -1138,27 +1081,23 @@
         system: { consentVersion: '1.0', dataClears: 0, errors: 0 }
     };
 
-    // Initialize or Load Metrics
     let metrics = defaultState;
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) metrics = { ...defaultState, ...JSON.parse(stored) };
     } catch (e) { console.warn('Metrics storage unavailable'); }
 
-    // Session Start Tracking
     metrics.session.count++;
     metrics.session.lastLogin = Date.now();
     const sessionStart = Date.now();
     let currentTypingStart = null;
     let callStartTime = null;
 
-    // Helper: Safe Save
     const saveMetrics = () => {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(metrics)); } 
-        catch (e) { /* Storage likely disabled/full - fail silently as per requirements */ }
+        catch (e) {}
     };
 
-    // Helper: Device Detection (Run once)
     const detectDevice = () => {
         const ua = navigator.userAgent;
         metrics.device.type = /Mobile|Android|iP(hone|od)|IEMobile/i.test(ua) ? 'mobile' : 'desktop';
@@ -1167,7 +1106,6 @@
     };
     detectDevice();
 
-    // Helper: Time of Day Bucket
     const getTimeBucket = () => {
         const hour = new Date().getHours();
         if (hour >= 5 && hour < 12) return 'morning';
@@ -1176,10 +1114,6 @@
         return 'night';
     };
 
-    // >>>> 2. MONKEY PATCHING (FUNCTION WRAPPING) <<<<
-    // This allows us to hook into logic without modifying the original source code.
-
-    // Wrap: appendMessage (Text)
     if (typeof window.appendMessage === 'function') {
         const originalAppendMessage = window.appendMessage;
         window.appendMessage = function(text, type) {
@@ -1196,7 +1130,6 @@
         };
     }
 
-    // Wrap: appendAudioMessage (Voice Notes)
     if (typeof window.appendAudioMessage === 'function') {
         const originalAppendAudio = window.appendAudioMessage;
         window.appendAudioMessage = function(src, sender) {
@@ -1209,7 +1142,6 @@
         };
     }
 
-    // Wrap: appendMediaMessage (Images/Videos)
     if (typeof window.appendMediaMessage === 'function') {
         const originalAppendMedia = window.appendMediaMessage;
         window.appendMediaMessage = function(src, type, sender) {
@@ -1222,8 +1154,6 @@
         };
     }
 
-    // Wrap: stopRecording (Voice Logic)
-    // We access the global 'startTime' variable from the original script here.
     if (typeof window.stopRecording === 'function') {
         const originalStopRecording = window.stopRecording;
         window.stopRecording = function(send) {
@@ -1244,28 +1174,26 @@
         };
     }
 
-    // Wrap: initiateVoiceCall (Call Start)
     if (typeof window.initiateVoiceCall === 'function') {
         const originalInitCall = window.initiateVoiceCall;
         window.initiateVoiceCall = async function() {
             try {
                 metrics.calls.initiated++;
-                metrics.calls.timeOfDay[getTimeBucket()]++; // Track TOD usage
-                callStartTime = Date.now(); // Optimistic start
+                metrics.calls.timeOfDay[getTimeBucket()]++;
+                callStartTime = Date.now();
                 saveMetrics();
             } catch(e) {}
             return originalInitCall.apply(this, arguments);
         };
     }
 
-    // Wrap: acceptIncomingCall (Call Accept)
     if (typeof window.acceptIncomingCall === 'function') {
         const originalAcceptCall = window.acceptIncomingCall;
         window.acceptIncomingCall = async function() {
             try {
                 metrics.calls.received++;
                 metrics.calls.accepted++;
-                metrics.calls.timeOfDay[getTimeBucket()]++; // Track TOD usage
+                metrics.calls.timeOfDay[getTimeBucket()]++;
                 callStartTime = Date.now();
                 saveMetrics();
             } catch(e) {}
@@ -1273,7 +1201,6 @@
         };
     }
 
-    // Wrap: endCall (Call End)
     if (typeof window.endCall === 'function') {
         const originalEndCall = window.endCall;
         window.endCall = function() {
@@ -1283,7 +1210,7 @@
                     if (duration > 0) metrics.calls.totalDuration += duration;
                     callStartTime = null;
                 } else {
-                    metrics.calls.drops++; // Ended without start time implies drop or reject
+                    metrics.calls.drops++;
                 }
                 saveMetrics();
             } catch(e) {}
@@ -1291,16 +1218,10 @@
         };
     }
 
-    // >>>> 3. DOM EVENT LISTENERS (NON-INTRUSIVE) <<<<
-    
-    // Typing Analysis
     const msgInput = document.getElementById('msg-input');
     if (msgInput) {
         msgInput.addEventListener('keydown', (e) => {
-            // Track Backspaces (Editing frequency)
             if (e.key === 'Backspace') metrics.text.backspaces++;
-            
-            // Track Typing Time
             if (!currentTypingStart) {
                 currentTypingStart = Date.now();
                 metrics.text.typingSessions++;
@@ -1308,7 +1229,6 @@
             metrics.device.inputPreference = 'text';
         });
 
-        // Reset typing timer on send (Enter)
         msgInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && currentTypingStart) {
                 metrics.text.totalTypingTime += (Date.now() - currentTypingStart);
@@ -1316,7 +1236,6 @@
             }
         });
         
-        // Handle blur as end of typing session
         msgInput.addEventListener('blur', () => {
             if (currentTypingStart) {
                 metrics.text.totalTypingTime += (Date.now() - currentTypingStart);
@@ -1325,39 +1244,18 @@
         });
     }
 
-    // Media Input Tracking
-    const fileInput = document.getElementById('file-input');
-    if (fileInput) {
-        fileInput.addEventListener('click', () => {
-            // Heuristic: Clicking file input counts as intent, cancellation tracked if change doesn't fire soon (complex to track perfectly without UI changes, so we track 'cancel' as explicit cancel button clicks elsewhere if available, or just lack of 'send')
-        });
-        // Note: Actual sends are tracked via the wrapped appendMediaMessage
-    }
-
-    // Session End Tracking
     window.addEventListener('beforeunload', () => {
         const sessionDur = (Date.now() - sessionStart) / 1000;
         metrics.session.totalDuration += sessionDur;
-        
-        // "Panic" or Quick Exit Detection (< 5 seconds)
         if (sessionDur < 5) metrics.session.quickExits++;
-        
         saveMetrics();
     });
 
-    // Interaction Tracking (Bubbled)
     document.body.addEventListener('click', (e) => {
-        // Track generic interaction method
         if (e.pointerType === 'touch') metrics.device.inputPreference = 'touch';
         else if (e.pointerType === 'mouse') metrics.device.inputPreference = 'mouse';
-        
-        // Track specific ID clicks for aborted actions
-        if (e.target.id === 'exit-btn') {
-            // User clicked exit arrow
-        }
-    }, { passive: true }); // Passive to ensure no performance hit
+    }, { passive: true });
 
-    // Global Namespace for debugging (console access)
     window.__whisperMetrics = {
         get: () => metrics,
         clear: () => {
@@ -1367,9 +1265,6 @@
             console.log('Local metrics cleared.');
         }
     };
-
-    console.log('Whisper Local Metrics Active.');
-
 })();
     </script>
 </body>
