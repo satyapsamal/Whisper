@@ -543,7 +543,7 @@
             background: var(--modal-bg);
             border: 1px solid #333;
             padding: 20px 30px;
-            border-radius: 35px;
+            border-radius: 35px; /* Matches .modal-content exactly */
             width: 90%;
             max-width: 400px;
             display: flex;
@@ -1510,10 +1510,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const code = urlParams.get('code');
             if(code) {
-                document.getElementById('peer-code-input').value = code;
-                setTimeout(() => {
-                    handleConnectClick();
-                }, 2000);
+                document.getElementById('peer-code-input').value = code; 
             }
         };
     </script>
