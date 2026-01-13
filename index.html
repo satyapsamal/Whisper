@@ -309,11 +309,23 @@
         .v-cancel { background: #222; color: #777; }
         .v-send { background: var(--record-red); color: white; }
 
-        #p2p-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; }
+        /* UPDATED MODAL LAYOUT */
+        #p2p-modal { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.7); 
+            display: flex; 
+            flex-direction: column; /* Changed to column for stacking */
+            gap: 15px; /* Spacing between menu and new button */
+            align-items: center; 
+            justify-content: center; 
+            z-index: 100; 
+        }
+
         .modal-content { 
             background: var(--modal-bg); border: 1px solid #333; padding: 30px; border-radius: 35px; width: 90%; max-width: 400px; 
             text-align: center; animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            max-height: 90vh; overflow-y: auto;
+            max-height: 75vh; /* Adjusted to fit button below */
+            overflow-y: auto;
         }
         
         /* Updated Code Box to Flexible Wrapper */
@@ -525,6 +537,31 @@
             color: #fff;
             font-weight: 600;
         }
+
+        /* --- NEW FEATURE: LINKEDIN BUTTON STYLES --- */
+        .linkedin-btn {
+            background: var(--modal-bg);
+            border: 1px solid #333;
+            padding: 20px 30px;
+            border-radius: 35px;
+            width: 90%;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-decoration: none;
+            color: white;
+            margin-top: 0; /* Handled by parent gap */
+            transition: transform 0.2s, background 0.2s;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            /* Consistent with modal entry animation but delayed */
+            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation-fill-mode: backwards;
+            animation-delay: 0.1s;
+        }
+        .linkedin-btn:active { transform: scale(0.98); background: #111; }
+        .linkedin-text { font-weight: 600; font-size: 1rem; }
     </style>
 </head>
 <body class="modal-active">
@@ -651,6 +688,14 @@
                 </div>
             </div>
         </div>
+        
+        <!-- NEW FEATURE: LINKEDIN BUTTON (Below the modal content) -->
+        <a href="https://in.linkedin.com/in/satyaprakashsamal" target="_blank" class="linkedin-btn">
+            <span class="linkedin-text">Follow on LinkedIn</span>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+            </svg>
+        </a>
     </div>
 
     <header>
