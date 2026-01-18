@@ -45,6 +45,22 @@
             -webkit-tap-highlight-color: transparent;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            
+            /* FEATURE 3: Disable text selection globally */
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+/Edge */
+            user-select: none; /* Standard */
+        }
+
+        /* FEATURE 3 EXCEPTION: Allow selection in specific areas */
+        .code-box, 
+        .message,
+        input {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
         }
 
         *::-webkit-scrollbar { display: none; }
@@ -187,7 +203,7 @@
             overflow-wrap: break-word;
             display: flex;
             flex-direction: column;
-            user-select: none; /* Helps with double tap detection */
+            /* user-select handled in global rule now */
         }
 
         .message.sent { align-self: flex-end; background: var(--accent-blue); border-bottom-right-radius: 4px; }
@@ -1518,6 +1534,34 @@
             }
         }
 
+        // --- FEATURE: SECURITY & RESTRICTIONS ---
+        // 1. Disable Right-Click Context Menu
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // 2. Disable Keyboard Shortcuts (Save, View Source, Inspect, Print)
+        document.addEventListener('keydown', function(e) {
+            // Cmd/Ctrl + S (Save)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+                e.preventDefault();
+            }
+            // Cmd/Ctrl + U (View Source)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'u' || e.key === 'U')) {
+                e.preventDefault();
+            }
+            // F12 (Dev Tools)
+            if (e.key === 'F12') {
+                e.preventDefault();
+            }
+            // Cmd/Ctrl + Shift + I/J/C (Dev Tools)
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i', 'I', 'j', 'J', 'c', 'C'].includes(e.key)) {
+                e.preventDefault();
+            }
+            // Cmd/Ctrl + P (Print)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+                e.preventDefault();
+            }
+        });
+
         window.onload = () => {
             initPeer();
             
@@ -1531,10 +1575,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
