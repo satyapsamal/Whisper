@@ -753,7 +753,7 @@
         <div class="input-container" id="input-container">
             <div id="normal-input-mode" style="display: flex; width: 100%; align-items: center;">
                 <button class="action-btn" onclick="document.getElementById('file-input').click()">+</button>
-                <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
+                <input type="text" id="msg-input" placeholder="Type your message" autocomplete="off">
                 <button class="action-btn" id="voice-trigger" onclick="startRecording()">
                     <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                 </button>
@@ -772,7 +772,7 @@
         </div>
     </div>
 
-    <footer>Messages aren’t stored or tracked.</footer>
+    <footer>Conversations stay private and are not tracked.</footer>
 
     <script>
         const chatContainer = document.getElementById('chat-container');
@@ -1002,7 +1002,7 @@
                 sendVisibilityStatus();
                 updatePeerStatus(true); // Assume online initially
                 
-                appendMessage("Friend connected. Chat is live.", 'system');
+                appendMessage("Private connection active. No government, big tech, or trackers involved.", 'system');
                 if(!localUserSentMessage) suggestionContainer.style.display = 'flex';
                 conn.on('data', handleIncomingData);
             });
@@ -1531,6 +1531,7 @@
     </script>
 </body>
 </html>
+
 
 
 
