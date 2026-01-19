@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
      <!-- Google Search Console Verification HTML Tag -->
     <meta name="google-site-verification" content="wM2ym30Va5IGGRkQTmyDT8a1YYxJL40GSyK0jQt0Lio" />
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0a0a">
     <!-- Sharing link template -->
     <meta property="og:type" content="website">
 <meta property="og:url" content="https://satyapsamal.github.io/whisper/">
@@ -596,6 +598,9 @@
     </style>
 </head>
 <body class="modal-active">
+<button id="pwa-install-btn" style="display: none; margin: 10px auto; padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; width: fit-content;">
+    Install Whisper App
+</button>
 
     <div id="media-viewer" onclick="this.style.display='none'"></div>
 
@@ -1572,6 +1577,38 @@
                 document.getElementById('peer-code-input').value = code; 
             }
         };
+// PWA Support Logic
+let deferredPrompt;
+const installBtn = document.getElementById('pwa-install-btn');
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+        .catch(err => console.log('SW registration failed:', err));
+}
+
+// Handle Install Prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block'; // Show button when installable
+});
+
+installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            installBtn.style.display = 'none';
+        }
+        deferredPrompt = null;
+    }
+});
+
+window.addEventListener('appinstalled', () => {
+    installBtn.style.display = 'none';
+    deferredPrompt = null;
+});
     </script>
 </body>
 </html>
