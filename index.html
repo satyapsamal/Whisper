@@ -571,30 +571,76 @@
             font-weight: 600;
         }
 
-        /* --- NEW FEATURE: LINKEDIN BUTTON STYLES --- */
-        .linkedin-btn {
-            background: var(--modal-bg);
-            border: 1px solid #333;
-            padding: 20px 30px;
-            border-radius: 35px; /* Matches .modal-content exactly */
+        /* --- UPDATED PROMO CAROUSEL STYLES --- */
+        .promo-carousel-container {
             width: 90%;
             max-width: 400px;
+            height: 70px; /* Approximate height including borders */
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            text-decoration: none;
-            color: white;
-            margin-top: 0; /* Handled by parent gap */
-            transition: transform 0.2s, background 0.2s;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            /* Consistent with modal entry animation but delayed */
+            margin-top: 0;
+            /* Same entrance animation as modal content */
             animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             animation-fill-mode: backwards;
             animation-delay: 0.1s;
         }
-        .linkedin-btn:active { transform: scale(0.98); background: #111; }
-        .linkedin-text { font-weight: 600; font-size: 1rem; }
+
+        .promo-slide {
+            /* Inherited basic style from previous linkedin-btn */
+            background: var(--modal-bg);
+            border: 1px solid #333;
+            padding: 0 16px; /* Slightly reduced padding to fit */
+            border-radius: 35px;
+            width: 100%;
+            height: 100%;
+            display: none; /* Hidden by default */
+            align-items: center;
+            justify-content: space-between;
+            text-decoration: none;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s, background 0.2s;
+            cursor: pointer;
+            flex: 1;
+            margin: 0 8px; /* Space for arrows */
+        }
+        
+        .promo-slide.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .promo-slide:active { transform: scale(0.98); background: #111; }
+        
+        .promo-text { 
+            font-weight: 600; 
+            font-size: 0.9rem; 
+            flex: 1; 
+            text-align: left; 
+            padding-right: 10px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+
+        .nav-arrow {
+            background: transparent;
+            border: none;
+            color: #666;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            font-size: 1.2rem;
+            transition: color 0.2s;
+        }
+        .nav-arrow:hover { color: var(--accent-blue); }
     </style>
 </head>
 <body class="modal-active">
@@ -721,13 +767,37 @@
             </div>
         </div>
         
-        <!-- NEW FEATURE: LINKEDIN BUTTON (Below the modal content) -->
-        <a href="https://in.linkedin.com/in/satyaprakashsamal" target="_blank" class="linkedin-btn">
-            <span class="linkedin-text">Follow on LinkedIn</span>
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-            </svg>
-        </a>
+        <!-- UPDATED FEATURE: PROMO CAROUSEL (Below the modal content) -->
+        <div class="promo-carousel-container">
+            <button class="nav-arrow" onclick="rotatePromo(-1)">&#10094;</button>
+            
+            <div id="promo-slides-wrapper" style="flex: 1; height: 100%; display: flex; overflow: hidden;">
+                <!-- Slide 1: PWA Install (Hidden unless available) -->
+                <button id="pwa-install-btn" class="promo-slide">
+                    <span class="promo-text">Install Whisper on Device</span>
+                </button>
+
+                <!-- Slide 2: Roblox -->
+                <a href="https://www.roblox.com/games/13224311959/Nex-Tower-of-Hell" target="_blank" class="promo-slide slide-available">
+                    <span class="promo-text">Play Nex Tower of Hell</span>
+                </a>
+
+                <!-- Slide 3: TypeSpark -->
+                <a href="https://satyapsamal.github.io/typespark/" target="_blank" class="promo-slide slide-available">
+                    <span class="promo-text">Check your typing speed</span>
+                </a>
+
+                <!-- Slide 4: LinkedIn (Existing) -->
+                <a href="https://in.linkedin.com/in/satyaprakashsamal" target="_blank" class="promo-slide slide-available">
+                    <span class="promo-text">Follow on LinkedIn</span>
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                </a>
+            </div>
+
+            <button class="nav-arrow" onclick="rotatePromo(1)">&#10095;</button>
+        </div>
     </div>
 
     <header>
@@ -828,6 +898,47 @@
         let typingTimeout;
         
         let currentReplyContext = null;
+
+        // --- NEW CAROUSEL LOGIC ---
+        let currentPromoIndex = 0;
+        let promoInterval;
+
+        function updateCarousel() {
+            // Only select slides that are marked as available
+            const slides = Array.from(document.querySelectorAll('.promo-slide')).filter(s => s.classList.contains('slide-available'));
+            
+            if (slides.length === 0) return;
+            
+            // Normalize index
+            if (currentPromoIndex >= slides.length) currentPromoIndex = 0;
+            if (currentPromoIndex < 0) currentPromoIndex = slides.length - 1;
+
+            // Hide all first
+            document.querySelectorAll('.promo-slide').forEach(s => s.classList.remove('active'));
+            
+            // Show current
+            slides[currentPromoIndex].classList.add('active');
+        }
+
+        function rotatePromo(direction) {
+            currentPromoIndex += direction;
+            updateCarousel();
+            resetPromoTimer();
+        }
+
+        function startPromoAutoRotation() {
+            updateCarousel(); // Initial show
+            promoInterval = setInterval(() => {
+                currentPromoIndex++;
+                updateCarousel();
+            }, 5000);
+        }
+
+        function resetPromoTimer() {
+            clearInterval(promoInterval);
+            startPromoAutoRotation();
+        }
+        // --------------------------
 
         peerCodeInput.addEventListener('input', function(e) {
             let val = this.value;
@@ -1572,40 +1683,48 @@
             if(code) {
                 document.getElementById('peer-code-input').value = code; 
             }
+
+            // Start Carousel
+            startPromoAutoRotation();
         };
-// PWA Support Logic
-let deferredPrompt;
-const installBtn = document.getElementById('pwa-install-btn');
 
-// Register Service Worker
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-        .catch(err => console.log('SW registration failed:', err));
-}
+        // PWA Support Logic
+        let deferredPrompt;
+        const installBtn = document.getElementById('pwa-install-btn');
 
-// Handle Install Prompt
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    installBtn.style.display = 'block'; // Show button when installable
-});
-
-installBtn.addEventListener('click', async () => {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-            installBtn.style.display = 'none';
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .catch(err => console.log('SW registration failed:', err));
         }
-        deferredPrompt = null;
-    }
-});
 
-window.addEventListener('appinstalled', () => {
-    installBtn.style.display = 'none';
-    deferredPrompt = null;
-});
+        // Handle Install Prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Updated logic for Carousel Integration
+            installBtn.classList.add('slide-available');
+            // We rely on the carousel to show it, so we don't set display:block directly here
+            updateCarousel(); 
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installBtn.classList.remove('slide-available');
+                    updateCarousel();
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            installBtn.classList.remove('slide-available');
+            updateCarousel();
+            deferredPrompt = null;
+        });
     </script>
 </body>
 </html>
-
