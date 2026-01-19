@@ -604,9 +604,9 @@
 
         // --- CONSTANT BUTTON / FADING PROMO LOGIC ---
         const promoData = [
-            { text: "Follow on LinkedIn", url: "https://in.linkedin.com/in/satyaprakashsamal", id: "linkedin" },
-            { text: "Play Nex Tower of Hell", url: "https://www.roblox.com/games/13224311959/Nex-Tower-of-Hell", id: "roblox" },
-            { text: "Check your typing speed", url: "https://satyapsamal.github.io/typespark/", id: "typespark" }
+            { text: "Follow me on LinkedIn :)", url: "https://in.linkedin.com/in/satyaprakashsamal", id: "linkedin" },
+            { text: "Wanna play a cool Roblox parkour game?", url: "https://www.roblox.com/games/13224311959/Nex-Tower-of-Hell", id: "roblox" },
+            { text: "The average typist hits 40 WPM. Try yours?", url: "https://satyapsamal.github.io/typespark/", id: "typespark" }
         ];
         
         let availablePromos = [...promoData];
@@ -905,7 +905,7 @@
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault(); deferredPrompt = e;
             if (!availablePromos.find(p => p.id === "pwa")) {
-                availablePromos.unshift({ text: "Install Whisper on Device", url: "#", id: "pwa" });
+                availablePromos.unshift({ text: "Wanna install Whisper on your device?", url: "#", id: "pwa" });
                 updatePromoUI();
             }
         });
@@ -931,3 +931,4 @@
     </script>
 </body>
 </html>
+
