@@ -11,8 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
      <!-- Google Search Console Verification HTML Tag -->
     <meta name="google-site-verification" content="wM2ym30Va5IGGRkQTmyDT8a1YYxJL40GSyK0jQt0Lio" />
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0a0a0a">
     <!-- Sharing link template -->
     <meta property="og:type" content="website">
 <meta property="og:url" content="https://satyapsamal.github.io/whisper/">
@@ -47,13 +45,18 @@
             -webkit-tap-highlight-color: transparent;
             scrollbar-width: none;
             -ms-overflow-style: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
+            
+            /* FEATURE 3: Disable text selection globally */
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+/Edge */
+            user-select: none; /* Standard */
         }
 
-        .code-box, .message, input {
+        /* FEATURE 3 EXCEPTION: Allow selection in specific areas */
+        .code-box, 
+        .message,
+        input {
             -webkit-user-select: text;
             -moz-user-select: text;
             -ms-user-select: text;
@@ -72,6 +75,7 @@
             transition: filter 0.5s ease;
         }
 
+        /* Blur state when modal is active */
         body.modal-active header,
         body.modal-active main,
         body.modal-active .input-wrapper,
@@ -92,6 +96,7 @@
             flex-shrink: 0;
         }
 
+        /* Updated Header Title Layout */
         .header-title-container {
             grid-column: 2;
             display: flex;
@@ -118,7 +123,9 @@
             transition: color 0.3s ease;
         }
         
-        .status-text.online { color: var(--call-green); }
+        .status-text.online {
+            color: var(--call-green);
+        }
 
         #exit-btn {
             background: transparent;
@@ -196,12 +203,14 @@
             overflow-wrap: break-word;
             display: flex;
             flex-direction: column;
+            /* user-select handled in global rule now */
         }
 
         .message.sent { align-self: flex-end; background: var(--accent-blue); border-bottom-right-radius: 4px; }
         .message.received { align-self: flex-start; background: var(--bubble-bg); border-bottom-left-radius: 4px; }
         .message.system { align-self: center; background: transparent; color: #777; font-size: 0.75rem; text-align: center; border: none; margin: 10px 0; line-height: 1.6; display: block; }
 
+        /* Reply Styles */
         .reply-context {
             font-size: 0.75rem;
             background: rgba(0,0,0,0.15);
@@ -217,6 +226,7 @@
         .reply-sender { font-weight: 600; font-size: 0.65rem; opacity: 0.8; margin-bottom: 2px; text-transform: uppercase; }
         .reply-text-preview { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.9; }
 
+        /* Meta Data: Time & Seen */
         .msg-meta {
             display: flex;
             justify-content: flex-end;
@@ -229,8 +239,11 @@
         }
         .msg-time { font-weight: 500; }
         .msg-seen { color: #fff; font-weight: 600; display: none; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* Show seen only on sent messages when active */
         .message.sent .msg-seen.active { display: block; }
 
+        /* Typing Indicator Styles */
         .typing-bubble {
             display: none;
             align-self: flex-start;
@@ -252,6 +265,7 @@
 
         .audio-bubble { display: flex; align-items: center; gap: 10px; min-width: 250px; position: relative; }
         .audio-bubble button { background: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #000; z-index: 2; flex-shrink: 0; }
+        
         .playback-viz { display: flex; align-items: center; gap: 3px; height: 24px; flex: 1; padding-right: 5px; }
         .pb-bar { width: 3px; height: 4px; background: rgba(255,255,255,0.4); border-radius: 1.5px; transition: height 0.1s ease; }
         .audio-duration { font-family: monospace; font-size: 0.7rem; opacity: 0.8; color: white; white-space: nowrap; flex-shrink: 0; margin-left: auto; }
@@ -272,8 +286,13 @@
         }
         .call-avatar-wrapper { position: relative; width: 200px; height: 200px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; }
         .call-ripple {
-            position: absolute; width: 120px; height: 120px; border: 2px solid var(--accent-blue);
-            border-radius: 50%; opacity: 0; transition: transform 0.05s ease-out, opacity 0.05s ease-out;
+            position: absolute; 
+            width: 120px; 
+            height: 120px; 
+            border: 2px solid var(--accent-blue);
+            border-radius: 50%; 
+            opacity: 0; 
+            transition: transform 0.05s ease-out, opacity 0.05s ease-out;
             pointer-events: none;
         }
         .call-avatar { 
@@ -288,14 +307,32 @@
         .btn-accept { background: var(--call-green); }
 
         .spinner {
-            display: none; width: 24px; height: 24px; border: 3px solid #333; 
-            border-top: 3px solid #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
+            display: none; 
+            width: 24px; 
+            height: 24px; 
+            border: 3px solid #333; 
+            border-top: 3px solid #fff; 
+            border-radius: 50%; 
+            animation: spin 0.8s linear infinite;
             margin: 0 auto;
         }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        .voice-active-area { display: none; width: 100%; align-items: center; padding: 0 15px; gap: 15px; animation: fadeIn 0.2s ease; }
-        .voice-visualizer { flex: 1; display: flex; align-items: center; gap: 3px; height: 30px; }
+        .voice-active-area {
+            display: none;
+            width: 100%;
+            align-items: center;
+            padding: 0 15px;
+            gap: 15px;
+            animation: fadeIn 0.2s ease;
+        }
+        .voice-visualizer {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            height: 30px;
+        }
         .v-bar { width: 2px; height: 4px; background: var(--record-red); border-radius: 2px; transition: height 0.05s ease; }
         .voice-timer { font-family: monospace; font-size: 0.85rem; color: var(--record-red); font-weight: 600; min-width: 45px; }
         .voice-controls { display: flex; gap: 10px; }
@@ -303,31 +340,67 @@
         .v-cancel { background: #222; color: #777; }
         .v-send { background: var(--record-red); color: white; }
 
+        /* UPDATED MODAL LAYOUT */
         #p2p-modal { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.7); display: flex; flex-direction: column;
-            gap: 15px; align-items: center; justify-content: center; z-index: 100; 
+            background: rgba(0,0,0,0.7); 
+            display: flex; 
+            flex-direction: column; /* Changed to column for stacking */
+            gap: 15px; /* Spacing between menu and new button */
+            align-items: center; 
+            justify-content: center; 
+            z-index: 100; 
         }
 
         .modal-content { 
             background: var(--modal-bg); border: 1px solid #333; padding: 30px; border-radius: 35px; width: 90%; max-width: 400px; 
             text-align: center; animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            max-height: 75vh; overflow-y: auto;
+            max-height: 75vh; /* Adjusted to fit button below */
+            overflow-y: auto;
         }
         
-        .code-wrapper { display: flex; gap: 10px; align-items: stretch; margin: 10px 0 20px; }
+        /* Updated Code Box to Flexible Wrapper */
+        .code-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+            margin: 10px 0 20px;
+        }
+        
         .code-box { 
-            background: #111; padding: 15px; border-radius: 12px; font-family: monospace; font-size: 1.2rem; 
-            border: 1px dashed #444; cursor: pointer; color: var(--accent-blue); letter-spacing: 2px; 
-            text-transform: uppercase; display: flex; align-items: center; justify-content: center;
+            background: #111; 
+            padding: 15px; 
+            border-radius: 12px; 
+            font-family: monospace; 
+            font-size: 1.2rem; 
+            /* Margin moved to wrapper */
+            border: 1px dashed #444; 
+            cursor: pointer; 
+            color: var(--accent-blue); 
+            letter-spacing: 2px; 
+            text-transform: uppercase; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .link-btn {
-            width: 50px; background: #111; border: 1px dashed #444; border-radius: 12px;
-            color: var(--accent-blue); display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+            width: 50px;
+            background: #111;
+            border: 1px dashed #444;
+            border-radius: 12px;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
         }
-        .link-btn:active { transform: scale(0.95); background: #222; }
+        .link-btn:active {
+            transform: scale(0.95);
+            background: #222;
+        }
         
         .prefs-list { margin: 25px 0 0; display: flex; flex-direction: column; gap: 8px; }
         .pref-item { display: flex; align-items: center; justify-content: space-between; background: #111; padding: 14px 18px; border-radius: 15px; }
@@ -347,13 +420,29 @@
 
         .input-wrapper { padding: 10px 15px 35px 15px; background-color: var(--bg-color); z-index: 60; }
         
+        /* Reply Preview Bar */
         #reply-preview-bar {
-            background: #151515; border-top: 1px solid #222; padding: 8px 15px 12px 15px;
-            display: none; align-items: center; justify-content: space-between; color: #ccc;
-            border-top-left-radius: 18px; border-top-right-radius: 18px; margin-bottom: -15px;
-            position: relative; z-index: 1;
+            background: #151515;
+            border-top: 1px solid #222;
+            padding: 8px 15px 12px 15px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            color: #ccc;
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+            margin-bottom: -15px; /* Pull into input area slightly */
+            position: relative;
+            z-index: 1;
         }
-        .reply-preview-content { border-left: 3px solid var(--accent-blue); padding-left: 10px; display: flex; flex-direction: column; font-size: 0.8rem; max-width: 85%; }
+        .reply-preview-content {
+            border-left: 3px solid var(--accent-blue);
+            padding-left: 10px;
+            display: flex;
+            flex-direction: column;
+            font-size: 0.8rem;
+            max-width: 85%;
+        }
         .reply-preview-sender { font-size: 0.7rem; color: var(--accent-blue); font-weight: 600; margin-bottom: 2px; }
         .reply-preview-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.8; }
         .reply-close-btn { background: transparent; border: none; color: #777; font-size: 1.2rem; cursor: pointer; padding: 5px; }
@@ -383,56 +472,131 @@
         #media-viewer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(10px); }
         #media-viewer img, #media-viewer video { max-width: 95%; max-height: 90%; border-radius: 10px; }
 
-        #help-trigger { margin-top: 20px; font-size: 0.8rem; color: #666; cursor: pointer; text-decoration: none; transition: all 0.2s ease; }
-        #help-trigger:hover { text-decoration: underline; color: var(--accent-blue); }
+        /* --- UPDATED HELP PAGE STYLES --- */
+        .modal-content { position: relative; } 
+        
+        #help-trigger {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #666;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        #help-trigger:hover, #help-trigger:active {
+            text-decoration: underline;
+            color: var(--accent-blue);
+        }
 
         #instruction-view {
-            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-bg);
-            z-index: 20; border-radius: 35px; padding: 0; flex-direction: column; text-align: left; overflow: hidden; 
+            display: none; 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--modal-bg);
+            z-index: 20;
+            border-radius: 35px;
+            padding: 0;
+            flex-direction: column;
+            text-align: left;
+            overflow: hidden; 
         }
 
-        .instruction-header { padding: 30px 30px 10px 30px; background: var(--modal-bg); flex-shrink: 0; box-shadow: 0 4px 20px rgba(0,0,0,0.5); z-index: 25; position: relative; }
-        .instruction-scroll-content { flex: 1; overflow-y: auto; padding: 20px 30px 10px 30px; }
-        .instruction-footer { padding: 10px 30px 30px 30px; background: var(--modal-bg); flex-shrink: 0; width: 100%; box-shadow: 0 -4px 20px rgba(0,0,0,0.5); z-index: 25; position: relative; }
-        #instruction-view h2 { font-size: 1.2rem; text-align: center; color: white; margin: 0; }
-        .help-section { margin-bottom: 25px; }
-        .help-section h3 { font-size: 0.95rem; color: var(--accent-blue); margin-bottom: 10px; font-weight: 600; }
-        .help-section ul { list-style: none; padding-left: 5px; }
-        .help-section li { font-size: 0.8rem; color: #ccc; margin-bottom: 8px; line-height: 1.5; position: relative; padding-left: 15px; }
-        .help-section li::before { content: "•"; color: #555; position: absolute; left: 0; }
-
-        /* --- UPDATED PROMO BUTTON STYLES --- */
-        .promo-carousel-container {
-            width: 90%; max-width: 400px; height: 70px; position: relative;
-            display: flex; align-items: center; justify-content: center;
-            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards 0.1s;
+        /* --- FEATURE 2: INSTRUCTION MENU SHADOWS --- */
+        .instruction-header {
+            padding: 30px 30px 10px 30px;
+            background: var(--modal-bg);
+            flex-shrink: 0;
+            /* Border removed */
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5); /* Depth Shadow */
+            z-index: 25;
+            position: relative;
         }
 
-        #promo-link {
-            background: var(--modal-bg); border: 1px solid #333; border-radius: 35px;
-            width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-            text-decoration: none; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: transform 0.2s, background 0.2s; cursor: pointer;
+        .instruction-scroll-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 30px 10px 30px;
         }
-        #promo-link:active { transform: scale(0.98); background: #111; }
         
-        .promo-text-fade { 
-            font-weight: 600; font-size: 0.9rem; text-align: center;
-            transition: opacity 0.5s ease-in-out;
-            opacity: 1; width: 100%;
+        .instruction-footer {
+            padding: 10px 30px 30px 30px;
+            background: var(--modal-bg);
+            flex-shrink: 0;
+            width: 100%;
+            /* Border removed */
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.5); /* Depth Shadow */
+            z-index: 25;
+            position: relative;
         }
 
-        .nav-arrow {
-            position: absolute; background: transparent; border: none; color: #666;
-            width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 1.2rem; transition: color 0.2s; z-index: 2;
+        #instruction-view h2 {
+            font-size: 1.2rem;
+            text-align: center;
+            color: white;
+            margin: 0;
         }
-        .nav-arrow.left { left: -40px; }
-        .nav-arrow.right { right: -40px; }
-        .nav-arrow:hover { color: var(--accent-blue); }
+
+        .help-section { margin-bottom: 25px; }
+        .help-section h3 {
+            font-size: 0.95rem;
+            color: var(--accent-blue);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .help-section ul {
+            list-style: none;
+            padding-left: 5px;
+        }
+        .help-section li {
+            font-size: 0.8rem;
+            color: #ccc;
+            margin-bottom: 8px;
+            line-height: 1.5;
+            position: relative;
+            padding-left: 15px;
+        }
+        .help-section li::before {
+            content: "•";
+            color: #555;
+            position: absolute;
+            left: 0;
+        }
+        .help-section li strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* --- NEW FEATURE: LINKEDIN BUTTON STYLES --- */
+        .linkedin-btn {
+            background: var(--modal-bg);
+            border: 1px solid #333;
+            padding: 20px 30px;
+            border-radius: 35px; /* Matches .modal-content exactly */
+            width: 90%;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-decoration: none;
+            color: white;
+            margin-top: 0; /* Handled by parent gap */
+            transition: transform 0.2s, background 0.2s;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            /* Consistent with modal entry animation but delayed */
+            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation-fill-mode: backwards;
+            animation-delay: 0.1s;
+        }
+        .linkedin-btn:active { transform: scale(0.98); background: #111; }
+        .linkedin-text { font-weight: 600; font-size: 1rem; }
     </style>
 </head>
 <body class="modal-active">
+
     <div id="media-viewer" onclick="this.style.display='none'"></div>
 
     <div id="call-overlay">
@@ -464,6 +628,7 @@
             <h2 style="margin-bottom: 25px;">Whisper Fearlessly.</h2>
             <p style="font-size: 0.7rem; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Your connection code:</p>
             
+            <!-- FEATURE 3: Link Symbol and Flexible Wrapper -->
             <div class="code-wrapper">
                 <div class="code-box" id="my-code" onclick="copyCode()" style="margin: 0; flex: 1;">...</div>
                 <button class="link-btn" id="link-share-btn" onclick="copyLink()">
@@ -471,6 +636,7 @@
                 </button>
             </div>
             
+            <!-- FEATURE 1: UPDATED LABEL STYLE -->
             <p style="font-size: 0.7rem; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Paste friends' connection code:</p>
             
             <input type="text" id="peer-code-input" value="WSP-" style="border: 1px solid #333; margin: 0 0 12px; background: #000; width: 100%; border-radius: 18px; color: white; outline: none;">
@@ -510,62 +676,114 @@
                 </div>
             </div>
 
+            <!-- New Feature: Getting Started Link -->
             <div id="help-trigger" onclick="toggleHelp(true)">Getting Started with Whisper?</div>
 
+            <!-- Instruction Page (Overlay) -->
             <div id="instruction-view">
-                <div class="instruction-header"><h2>Getting Started with Whisper</h2></div>
+                <div class="instruction-header">
+                    <h2>Getting Started with Whisper</h2>
+                </div>
+                
                 <div class="instruction-scroll-content">
                     <div class="help-section">
                         <h3>Create a new private chat</h3>
-                        <ul><li>Your connection code is generated automatically. Share it with your friend.</li></ul>
+                        <ul>
+                            <li>Your connection code is generated automatically at the top.</li>
+                            <li>Share this code with your friend.</li>
+                            <li>Your friend pastes the code and taps Connect Privately to join.</li>
+                        </ul>
                     </div>
+
                     <div class="help-section">
                         <h3>Join an existing chat</h3>
-                        <ul><li>Paste your friend's code and tap Connect Privately.</li></ul>
+                        <ul>
+                            <li>Ask your friend for their connection code.</li>
+                            <li>Paste the code into Paste friends’ connection code.</li>
+                            <li>Tap Connect Privately to enter the chat.</li>
+                        </ul>
                     </div>
+
                     <div class="help-section">
                         <h3>Optional privacy controls</h3>
-                        <ul><li><strong>Swiss Protection:</strong> Strong encryption standards.</li><li><strong>Hide IP:</strong> Network anonymity.</li></ul>
+                        <ul>
+                            <li><strong>Swiss Protection:</strong> Enhanced privacy powered by Switzerland’s strong data protection standards.</li>
+                            <li><strong>Hide IP Address:</strong> keeps your network identity hidden.</li>
+                            <li><strong>Auto-delete on leave:</strong> removes all messages when you exit the chat.</li>
+                        </ul>
                     </div>
                 </div>
-                <div class="instruction-footer"><button class="btn" style="background: #222; color: white; min-height: 44px;" onclick="toggleHelp(false)">Back</button></div>
+
+                <div class="instruction-footer">
+                    <button class="btn" style="background: #222; color: white; min-height: 44px;" onclick="toggleHelp(false)">Back</button>
+                </div>
             </div>
         </div>
         
-        <div class="promo-carousel-container">
-            <button class="nav-arrow left" onclick="rotatePromo(-1)">&#10094;</button>
-            <a id="promo-link" href="#" target="_blank">
-                <span id="promo-text" class="promo-text-fade">...</span>
-            </a>
-            <button class="nav-arrow right" onclick="rotatePromo(1)">&#10095;</button>
-        </div>
+        <!-- NEW FEATURE: LINKEDIN BUTTON (Below the modal content) -->
+        <a href="https://in.linkedin.com/in/satyaprakashsamal" target="_blank" class="linkedin-btn">
+            <span class="linkedin-text">Follow on LinkedIn</span>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+            </svg>
+        </a>
     </div>
 
     <header>
         <button id="exit-btn" onclick="toggleConfirm(true)">&lsaquo;</button>
+        
+        <!-- Updated Header Title with Status -->
         <div class="header-title-container">
             <h1>Whisper</h1>
             <div id="connection-status" class="status-text">(Offline)</div>
         </div>
+        
         <button id="header-call-btn" class="call-btn" onclick="initiateVoiceCall()">
             <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
         </button>
     </header>
 
     <main id="chat-container">
-        <div id="typing-indicator" class="typing-bubble"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
-        <div id="suggestion-container"><button id="hello-suggestion" onclick="sendHello()">Say hello 👋</button></div>
+        <!-- Typing Indicator Container -->
+        <div id="typing-indicator" class="typing-bubble">
+            <div class="dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+        <div id="suggestion-container">
+            <button id="hello-suggestion" onclick="sendHello()">Say hello 👋</button>
+        </div>
     </main>
 
     <div class="input-wrapper">
-        <div id="reply-preview-bar"><div class="reply-preview-content"><span class="reply-preview-sender" id="reply-preview-sender">Replying to...</span><span class="reply-preview-text" id="reply-preview-text">Message content</span></div><button class="reply-close-btn" onclick="cancelReply()">×</button></div>
+        <div id="reply-preview-bar">
+            <div class="reply-preview-content">
+                <span class="reply-preview-sender" id="reply-preview-sender">Replying to...</span>
+                <span class="reply-preview-text" id="reply-preview-text">Message content</span>
+            </div>
+            <button class="reply-close-btn" onclick="cancelReply()">×</button>
+        </div>
+
         <div class="input-container" id="input-container">
             <div id="normal-input-mode" style="display: flex; width: 100%; align-items: center;">
                 <button class="action-btn" onclick="document.getElementById('file-input').click()">+</button>
                 <input type="text" id="msg-input" placeholder="Type your message" autocomplete="off">
-                <button class="action-btn" id="voice-trigger" onclick="startRecording()"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></button>
+                <button class="action-btn" id="voice-trigger" onclick="startRecording()">
+                    <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                </button>
             </div>
-            <div id="voice-input-mode" class="voice-active-area"><div class="voice-visualizer" id="visualizer"></div><div class="voice-timer" id="rec-timer">0:00</div><div class="voice-controls"><button class="v-btn v-cancel" onclick="stopRecording(false)">✕</button><button class="v-btn v-send" onclick="stopRecording(true)">↑</button></div></div>
+            
+            <div id="voice-input-mode" class="voice-active-area">
+                <div class="voice-visualizer" id="visualizer"></div>
+                <div class="voice-timer" id="rec-timer">0:00</div>
+                <div class="voice-controls">
+                    <button class="v-btn v-cancel" onclick="stopRecording(false)">✕</button>
+                    <button class="v-btn v-send" onclick="stopRecording(true)">↑</button>
+                </div>
+            </div>
+
             <input type="file" id="file-input" style="display: none;" accept="image/*,video/*">
         </div>
     </div>
@@ -598,337 +816,762 @@
         const body = document.body;
         
         let peer, conn, mediaRecorder, audioChunks = [], recordInterval, startTime, audioContext, analyser, dataArray, animationFrame;
-        let localUserSentMessage = false, currentCall = null, localStream = null;
-        let callAudioCtx, callAnalyser, callDataArray, callAnimFrame, pendingSeenReceipt = false;
-        let connectionAttempts = 0, lastAttemptedCode = "", typingTimeout, currentReplyContext = null;
-
-        // --- CONSTANT BUTTON / FADING PROMO LOGIC ---
-        const promoData = [
-            { text: "Follow me on LinkedIn :)", url: "https://in.linkedin.com/in/satyaprakashsamal", id: "linkedin" },
-            { text: "Wanna play a cool Roblox parkour game?", url: "https://www.roblox.com/games/13224311959/Nex-Tower-of-Hell", id: "roblox" },
-            { text: "The average typist hits 40 WPM. Try yours?", url: "https://satyapsamal.github.io/typespark/", id: "typespark" }
-        ];
+        let localUserSentMessage = false;
+        let currentCall = null;
+        let localStream = null;
+        let callAudioCtx, callAnalyser, callDataArray, callAnimFrame;
+        let pendingSeenReceipt = false;
         
-        let availablePromos = [...promoData];
-        let currentPromoIndex = 0;
-        let promoTimer;
+        let connectionAttempts = 0;
+        let lastAttemptedCode = "";
+        let typingTimeout;
+        
+        let currentReplyContext = null;
 
-        function updatePromoUI() {
-            const promoLink = document.getElementById('promo-link');
-            const promoText = document.getElementById('promo-text');
-            
-            // Start fade out
-            promoText.style.opacity = '0';
-            
-            setTimeout(() => {
-                const current = availablePromos[currentPromoIndex];
-                if (!current) return;
-                
-                promoText.textContent = current.text;
-                promoLink.href = current.url;
-                
-                // Special handling for PWA click if it's the install promo
-                if (current.id === "pwa") {
-                    promoLink.onclick = (e) => {
-                        e.preventDefault();
-                        triggerPwaInstall();
-                    };
-                } else {
-                    promoLink.onclick = null;
-                }
-                
-                // Fade in
-                promoText.style.opacity = '1';
-            }, 500); // Wait for fade out to complete
-        }
-
-        function rotatePromo(direction) {
-            currentPromoIndex = (currentPromoIndex + direction + availablePromos.length) % availablePromos.length;
-            updatePromoUI();
-            resetPromoInterval();
-        }
-
-        function resetPromoInterval() {
-            clearInterval(promoTimer);
-            promoTimer = setInterval(() => {
-                rotatePromo(1);
-            }, 5000);
-        }
-
-        // --- PEER & CHAT LOGIC ---
         peerCodeInput.addEventListener('input', function(e) {
             let val = this.value;
-            if (val.startsWith('WSP-WSP-')) val = val.substring(4);
-            else if (val.includes('WSP-') && val.indexOf('WSP-') > 0) val = 'WSP-' + val.split('WSP-').join('');
-            if (!val.startsWith('WSP-')) val = 'WSP-';
+            if (val.startsWith('WSP-WSP-')) {
+                val = val.substring(4);
+            } else if (val.includes('WSP-') && val.indexOf('WSP-') > 0) {
+                val = 'WSP-' + val.split('WSP-').join('');
+            }
+            if (!val.startsWith('WSP-')) {
+                val = 'WSP-';
+            }
             this.value = val.toUpperCase();
         });
 
-        window.addEventListener('beforeunload', () => { if (conn?.open) conn.send('WHISPER_EXIT'); });
+        peerCodeInput.addEventListener('keydown', function(e) {
+            if (this.selectionStart < 4 && (e.key === 'Backspace' || e.key === 'Delete')) {
+                e.preventDefault();
+            }
+        });
 
+        // Close connection on tab/window close
+        window.addEventListener('beforeunload', () => {
+            if (conn && conn.open) {
+                conn.send('WHISPER_EXIT');
+            }
+        });
+
+        // --- NEW VISIBILITY & STATUS LOGIC ---
         function sendVisibilityStatus() {
-            if (!conn?.open) return;
-            conn.send(document.visibilityState === 'visible' ? 'WHISPER_STATUS_ONLINE' : 'WHISPER_STATUS_OFFLINE');
+            if (!conn || !conn.open) return;
+            const status = document.visibilityState === 'visible' ? 'WHISPER_STATUS_ONLINE' : 'WHISPER_STATUS_OFFLINE';
+            conn.send(status);
+            
+            // Also send seen receipt if visible and pending
             if (document.visibilityState === 'visible' && pendingSeenReceipt) {
                 conn.send('WHISPER_SEEN');
                 pendingSeenReceipt = false;
             }
         }
+
         document.addEventListener('visibilitychange', sendVisibilityStatus);
 
         function updatePeerStatus(isOnline) {
-            connectionStatus.textContent = isOnline ? "(Online)" : "(Offline)";
-            connectionStatus.classList.toggle('online', isOnline);
+            if (isOnline) {
+                connectionStatus.textContent = "(Online)";
+                connectionStatus.classList.add('online');
+            } else {
+                connectionStatus.textContent = "(Offline)";
+                connectionStatus.classList.remove('online');
+            }
         }
+        // -------------------------------------
 
         function sendSeenIfVisible() {
-            if (document.visibilityState === 'visible') { if(conn?.open) conn.send('WHISPER_SEEN'); }
-            else pendingSeenReceipt = true;
+            if (document.visibilityState === 'visible') {
+                if(conn && conn.open) conn.send('WHISPER_SEEN');
+            } else {
+                pendingSeenReceipt = true;
+            }
         }
 
         for (let i = 0; i < 25; i++) {
-            const bar = document.createElement('div'); bar.className = 'v-bar'; visualizer.appendChild(bar);
+            const bar = document.createElement('div');
+            bar.className = 'v-bar';
+            visualizer.appendChild(bar);
         }
 
-        function getCurrentTime() { return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
 
         function createMetaElement(isSent) {
-            const meta = document.createElement('div'); meta.className = 'msg-meta';
-            const time = document.createElement('span'); time.className = 'msg-time'; time.textContent = getCurrentTime();
+            const meta = document.createElement('div');
+            meta.className = 'msg-meta';
+            const time = document.createElement('span');
+            time.className = 'msg-time';
+            time.textContent = getCurrentTime();
             meta.appendChild(time);
+            
             if (isSent) {
-                const seen = document.createElement('span'); seen.className = 'msg-seen'; seen.textContent = 'SEEN';
+                const seen = document.createElement('span');
+                seen.className = 'msg-seen';
+                seen.textContent = 'SEEN';
                 meta.appendChild(seen);
             }
             return meta;
         }
 
         function markLastSeen() {
-            const seenReceipts = document.querySelectorAll('.message.sent .msg-seen');
-            if (seenReceipts.length > 0) seenReceipts[seenReceipts.length - 1].classList.add('active');
+            const sentMessages = document.querySelectorAll('.message.sent .msg-seen');
+            if (sentMessages.length > 0) {
+                const last = sentMessages[sentMessages.length - 1];
+                last.classList.add('active');
+            }
         }
 
         function initPeer() {
             const shortId = Math.random().toString(36).substr(2, 6).toUpperCase();
-            peer = new Peer('WSP-' + shortId, { config: { 'iceServers': [{ url: 'stun:stun.l.google.com:19302' }] } });
+            peer = new Peer('WSP-' + shortId, {
+                config: {
+                    'iceServers': [
+                        { url: 'stun:stun.l.google.com:19302' },
+                        { url: 'stun:stun1.l.google.com:19302' }
+                    ]
+                }
+            });
             peer.on('open', (id) => document.getElementById('my-code').textContent = id);
             peer.on('connection', (incomingConn) => { conn = incomingConn; setupChatListeners(); });
             peer.on('call', showIncomingCallUI);
-            peer.on('error', () => resetConnectButton());
+            peer.on('error', (err) => {
+                console.error(err);
+                resetConnectButton();
+            });
         }
 
         function handleConnectClick() {
-            const rawId = peerCodeInput.value.trim().toUpperCase();
+            const rawId = peerCodeInput.value.trim();
             if (!rawId || rawId.length <= 4) return;
-            if (rawId === lastAttemptedCode) connectionAttempts++;
-            else { connectionAttempts = 1; lastAttemptedCode = rawId; }
+
+            const normalizedId = rawId.toUpperCase();
+            if (normalizedId === lastAttemptedCode) {
+                connectionAttempts++;
+            } else {
+                connectionAttempts = 1;
+                lastAttemptedCode = normalizedId;
+            }
 
             const btnText = document.getElementById('btn-text');
             const btnSpinner = document.getElementById('btn-spinner');
             const connectBtn = document.getElementById('connect-btn');
-            btnText.style.display = 'none'; btnSpinner.style.display = 'block'; connectBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'block';
+            connectBtn.disabled = true;
 
-            setTimeout(() => connectToPeer(rawId), 2000);
+            setTimeout(() => connectToPeer(normalizedId), 2000);
         }
 
         function resetConnectButton() {
             document.getElementById('btn-text').style.display = 'block';
             document.getElementById('btn-spinner').style.display = 'none';
             document.getElementById('connect-btn').disabled = false;
-            if (connectionAttempts >= 2) troubleshootPanel.style.display = 'block';
+            
+            if (connectionAttempts >= 2) {
+                troubleshootPanel.style.display = 'block';
+            }
         }
 
         function connectToPeer(peerId) {
             conn = peer.connect(peerId, { reliable: true });
-            const timeout = setTimeout(() => { if (!conn.open) resetConnectButton(); }, 6000);
+
+            const connectionTimeout = setTimeout(() => {
+                if (!conn.open) {
+                    resetConnectButton();
+                }
+            }, 6000);
+
             conn.on('open', () => {
-                clearTimeout(timeout);
-                onConnected();
+                clearTimeout(connectionTimeout);
+                body.classList.remove('modal-active');
+                modal.style.display = 'none';
+                exitBtn.style.display = 'flex';
+                headerCallBtn.style.display = 'flex';
+                
+                // --- Send initial status when opening ---
+                sendVisibilityStatus();
+                updatePeerStatus(true); // Assume online initially
+                
+                appendMessage("Private connection active. No government, big tech, or trackers involved.", 'system');
+                if(!localUserSentMessage) suggestionContainer.style.display = 'flex';
+                conn.on('data', handleIncomingData);
+                conn.on('close', () => handleDisconnect());
+            });
+
+            conn.on('error', () => {
+                clearTimeout(connectionTimeout);
+                resetConnectButton();
             });
         }
 
-        function setupChatListeners() { conn.on('open', onConnected); conn.on('close', handleDisconnect); }
-
-        function onConnected() {
-            body.classList.remove('modal-active'); modal.style.display = 'none';
-            exitBtn.style.display = 'flex'; headerCallBtn.style.display = 'flex';
-            sendVisibilityStatus(); updatePeerStatus(true);
-            appendMessage("Private connection active.", 'system');
-            if(!localUserSentMessage) suggestionContainer.style.display = 'flex';
-            conn.on('data', handleIncomingData);
-            conn.on('close', handleDisconnect);
+        function setupChatListeners() {
+            conn.on('open', () => {
+                body.classList.remove('modal-active');
+                modal.style.display = 'none';
+                exitBtn.style.display = 'flex';
+                headerCallBtn.style.display = 'flex';
+                
+                // --- Send initial status when accepting ---
+                sendVisibilityStatus();
+                updatePeerStatus(true); // Assume online initially
+                
+                appendMessage("Private connection active. No government, big tech, or trackers involved.", 'system');
+                if(!localUserSentMessage) suggestionContainer.style.display = 'flex';
+                conn.on('data', handleIncomingData);
+            });
+            conn.on('close', () => handleDisconnect());
         }
 
         function handleDisconnect() {
-            if (msgInput.disabled) return;
-            if (document.getElementById('pref-auto-delete').checked) chatContainer.innerHTML = '';
-            appendMessage("Connection ended.", 'system');
-            msgInput.disabled = true; msgInput.placeholder = "ENDED";
-            headerCallBtn.style.display = 'none'; updatePeerStatus(false);
-        }
+            if (msgInput.disabled) return; 
 
-        function handleIncomingData(data) {
-            if (data === 'WHISPER_EXIT') return handleDisconnect();
-            if (data === 'WHISPER_STATUS_ONLINE') return updatePeerStatus(true);
-            if (data === 'WHISPER_STATUS_OFFLINE') return updatePeerStatus(false);
-            if (data === 'WHISPER_SEEN') return markLastSeen();
-            if (data === 'WHISPER_TYPING_ON') return showTypingIndicator(true);
-            if (data === 'WHISPER_TYPING_OFF') return showTypingIndicator(false);
-            if (data === 'WHISPER_CALL_TERMINATED') return endCall(true);
-
-            showTypingIndicator(false);
-            if (typeof data === 'string' && data.startsWith('WHISPER_REP_JSON_')) {
-                const rep = JSON.parse(data.replace('WHISPER_REP_JSON_', ''));
-                appendMessage(rep.text, 'received', rep.context);
-            } else if (typeof data === 'string' && data.startsWith('WHISPER_AUD_')) {
-                appendAudioMessage(data.replace('WHISPER_AUD_', ''), 'received');
-            } else if (typeof data === 'string' && (data.startsWith('WHISPER_IMG_') || data.startsWith('WHISPER_VID_'))) {
-                const type = data.includes('IMG') ? 'image' : 'video';
-                appendMediaMessage(data.replace(/WHISPER_(IMG|VID)_/, ''), type, 'received');
-            } else {
-                appendMessage(data, 'received');
+            const autoDelete = document.getElementById('pref-auto-delete').checked;
+            
+            if (autoDelete) {
+                const indicator = typingIndicator.cloneNode(true);
+                const suggestions = suggestionContainer.cloneNode(true);
+                chatContainer.innerHTML = '';
+                chatContainer.appendChild(indicator);
+                chatContainer.appendChild(suggestions);
             }
-            sendSeenIfVisible();
+            
+            appendMessage("Private connection ended. This chat left no traces.", 'system');
+            
+            msgInput.disabled = true;
+            msgInput.placeholder = "CONNECTION ENDED";
+            document.getElementById('voice-trigger').style.display = 'none';
+            document.getElementById('file-input').disabled = true;
+            headerCallBtn.style.display = 'none';
+            updatePeerStatus(false);
         }
 
-        function showTypingIndicator(show) { typingIndicator.style.display = show ? 'block' : 'none'; if(show) chatContainer.scrollTop = chatContainer.scrollHeight; }
-
-        function appendMessage(text, type, replyContext = null) {
-            if (!text) return;
-            if (type === 'sent') localUserSentMessage = true; suggestionContainer.style.display = 'none';
-            const msgDiv = document.createElement('div'); msgDiv.className = `message ${type}`;
-            msgDiv.ondblclick = () => initiateReply(text, type === 'sent' ? 'You' : 'Friend');
-            if (replyContext) {
-                const ctx = document.createElement('div'); ctx.className = 'reply-context';
-                ctx.innerHTML = `<span class="reply-sender">${replyContext.sender}</span><span class="reply-text-preview">${replyContext.text}</span>`;
-                msgDiv.appendChild(ctx);
-            }
-            msgDiv.appendChild(document.createTextNode(text));
-            if (type !== 'system') msgDiv.appendChild(createMetaElement(type === 'sent'));
-            chatContainer.insertBefore(msgDiv, typingIndicator);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        function initiateReply(text, sender) {
-            currentReplyContext = { text, sender };
-            replyPreviewSender.textContent = `Replying to ${sender}`;
-            replyPreviewText.textContent = text;
-            replyPreviewBar.style.display = 'flex';
-            msgInput.focus();
-        }
-        function cancelReply() { currentReplyContext = null; replyPreviewBar.style.display = 'none'; }
-
-        msgInput.addEventListener('input', () => {
-            if (!conn?.open) return;
-            conn.send('WHISPER_TYPING_ON');
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => conn.send('WHISPER_TYPING_OFF'), 2000);
-        });
-
-        msgInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && msgInput.value.trim() && conn?.open) {
-                const val = msgInput.value.trim();
-                if (currentReplyContext) {
-                    conn.send('WHISPER_REP_JSON_' + JSON.stringify({ text: val, context: currentReplyContext }));
-                    appendMessage(val, 'sent', currentReplyContext);
-                    cancelReply();
-                } else {
-                    conn.send(val); appendMessage(val, 'sent');
-                }
-                msgInput.value = ''; clearTimeout(typingTimeout); conn.send('WHISPER_TYPING_OFF');
-            }
-        });
-
-        // Voice Call Stubs
         async function initiateVoiceCall() {
             if (!conn?.open) return;
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 currentCall = peer.call(conn.peer, localStream);
                 showCallOverlay("Calling...");
-                renderCallControls([{ label: '✕', class: 'btn-hangup', action: () => endCall(false) }]);
-                currentCall.on('stream', (s) => { playStream(s); callStatus.textContent = "Private Call Active"; });
-            } catch(e) { appendMessage("Mic error", "system"); }
+                renderCallControls([ { label: '✕', class: 'btn-hangup', action: () => endCall(false) } ]);
+                
+                setupRippleFeedback(localStream);
+
+                currentCall.on('stream', (remoteStream) => {
+                    setupRippleFeedback(remoteStream);
+                    callStatus.textContent = "You’re on a private call";
+                    const audio = new Audio();
+                    audio.srcObject = remoteStream;
+                    audio.play();
+                });
+                currentCall.on('close', () => endCall(true));
+            } catch (err) { appendMessage("Could not access microphone.", "system"); }
         }
-        function showIncomingCallUI(call) {
-            currentCall = call; showCallOverlay("Incoming Call...");
+
+        function showIncomingCallUI(incomingCall) {
+            currentCall = incomingCall;
+            showCallOverlay("Someone’s calling you privately");
             renderCallControls([
-                { label: '✕', class: 'btn-hangup', action: () => endCall(false) },
-                { label: '✓', class: 'btn-accept', action: () => {
-                    navigator.mediaDevices.getUserMedia({ audio: true }).then(s => {
-                        localStream = s; currentCall.answer(s);
-                        currentCall.on('stream', playStream);
-                        renderCallControls([{ label: '✕', class: 'btn-hangup', action: () => endCall(false) }]);
-                    });
-                }}
+                { label: '✕', class: 'btn-hangup', action: () => { currentCall.close(); endCall(false); } },
+                { label: '✓', class: 'btn-accept', action: acceptIncomingCall }
             ]);
         }
-        function playStream(s) { const a = new Audio(); a.srcObject = s; a.play(); }
-        function endCall(remote) {
-            if(!remote && conn?.open) conn.send('WHISPER_CALL_TERMINATED');
-            if(currentCall) currentCall.close();
-            if(localStream) localStream.getTracks().forEach(t => t.stop());
-            callOverlay.style.display = 'none';
+
+        async function acceptIncomingCall() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                currentCall.answer(localStream);
+                callStatus.textContent = "Connecting...";
+                renderCallControls([ { label: '✕', class: 'btn-hangup', action: () => endCall(false) } ]);
+
+                currentCall.on('stream', (remoteStream) => {
+                    setupRippleFeedback(remoteStream);
+                    callStatus.textContent = "You’re on a private call";
+                    const audio = new Audio();
+                    audio.srcObject = remoteStream;
+                    audio.play();
+                });
+                currentCall.on('close', () => endCall(true));
+            } catch (err) { endCall(false); }
         }
-        function showCallOverlay(s) { callStatus.textContent = s; callOverlay.style.display = 'flex'; }
-        function renderCallControls(acts) {
+
+        function setupRippleFeedback(stream) {
+            if (callAnimFrame) cancelAnimationFrame(callAnimFrame);
+            if (callAudioCtx) callAudioCtx.close();
+
+            callAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const source = callAudioCtx.createMediaStreamSource(stream);
+            callAnalyser = callAudioCtx.createAnalyser();
+            callAnalyser.fftSize = 64;
+            source.connect(callAnalyser);
+            callDataArray = new Uint8Array(callAnalyser.frequencyBinCount);
+            animateRipples();
+        }
+
+        function animateRipples() {
+            callAnimFrame = requestAnimationFrame(animateRipples);
+            callAnalyser.getByteFrequencyData(callDataArray);
+            
+            let sum = 0;
+            for(let i=0; i < callDataArray.length; i++) sum += callDataArray[i];
+            const volume = sum / callDataArray.length;
+            
+            const scale = volume / 128; 
+            const ripple1 = document.getElementById('ripple-1');
+            const ripple2 = document.getElementById('ripple-2');
+            const ripple3 = document.getElementById('ripple-3');
+
+            if (scale > 0.05) {
+                ripple1.style.opacity = 0.8;
+                ripple1.style.transform = `scale(${1 + scale * 0.8})`;
+                ripple2.style.opacity = 0.5;
+                ripple2.style.transform = `scale(${1 + scale * 1.5})`;
+                ripple3.style.opacity = 0.3;
+                ripple3.style.transform = `scale(${1 + scale * 2.2})`;
+            } else {
+                [ripple1, ripple2, ripple3].forEach(r => {
+                    r.style.opacity = 0;
+                    r.style.transform = 'scale(1)';
+                });
+            }
+        }
+
+        function endCall(isRemote = false) {
+            if (!isRemote && conn && conn.open) {
+                conn.send('WHISPER_CALL_TERMINATED');
+            }
+
+            if (currentCall) currentCall.close();
+            if (localStream) {
+                localStream.getTracks().forEach(t => t.stop());
+                localStream = null;
+            }
+            if (callAnimFrame) cancelAnimationFrame(callAnimFrame);
+            if (callAudioCtx) callAudioCtx.close();
+            
+            callOverlay.style.display = 'none';
+            currentCall = null;
+            
+            const lastMsg = chatContainer.lastElementChild;
+            if (lastMsg && lastMsg.textContent !== "Private call ended") {
+                appendMessage("Private call ended", 'system');
+            }
+        }
+
+        function showCallOverlay(status) {
+            callStatus.textContent = status;
+            callOverlay.style.display = 'flex';
+        }
+
+        function renderCallControls(actions) {
             callControls.innerHTML = '';
-            acts.forEach(a => {
-                const b = document.createElement('button'); b.className = `call-action-btn ${a.class}`;
-                b.textContent = a.label; b.onclick = a.action; callControls.appendChild(b);
+            actions.forEach(act => {
+                const b = document.createElement('button');
+                b.className = `call-action-btn ${act.class}`;
+                b.textContent = act.label;
+                b.onclick = act.action;
+                callControls.appendChild(b);
             });
         }
 
-        function copyCode() {
-            const c = document.getElementById('my-code').textContent;
-            navigator.clipboard.writeText(c); document.getElementById('my-code').textContent = "COPIED";
-            setTimeout(() => document.getElementById('my-code').textContent = c, 1000);
-        }
-        function copyLink() {
-            const url = window.location.origin + window.location.pathname + "?code=" + document.getElementById('my-code').textContent;
-            navigator.clipboard.writeText(url);
-        }
-        function toggleHelp(s) { document.getElementById('instruction-view').style.display = s ? 'flex' : 'none'; }
-        function toggleConfirm(s) { confirmModal.style.display = s ? 'flex' : 'none'; }
-        function exitChatroom() { location.reload(); }
-        function sendHello() { if(conn?.open) { conn.send("Hello 👋"); appendMessage("Hello 👋", "sent"); } }
-
-        // Security
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        document.addEventListener('keydown', e => {
-            if((e.ctrlKey || e.metaKey) && ['s','u','p'].includes(e.key.toLowerCase())) e.preventDefault();
-            if(e.key === 'F12') e.preventDefault();
-        });
-
-        // PWA
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault(); deferredPrompt = e;
-            if (!availablePromos.find(p => p.id === "pwa")) {
-                availablePromos.unshift({ text: "Wanna install Whisper on your device?", url: "#", id: "pwa" });
-                updatePromoUI();
+        function handleIncomingData(data) {
+            if (data === 'WHISPER_EXIT') {
+                handleDisconnect();
+                return;
             }
+            
+            // --- HANDLE STATUS UPDATES ---
+            if (data === 'WHISPER_STATUS_ONLINE') {
+                updatePeerStatus(true);
+                return;
+            }
+            if (data === 'WHISPER_STATUS_OFFLINE') {
+                updatePeerStatus(false);
+                return;
+            }
+            // ----------------------------
+
+            // --- HANDLE REPLIES ---
+            if (typeof data === 'string' && data.startsWith('WHISPER_REP_JSON_')) {
+                const jsonStr = data.replace('WHISPER_REP_JSON_', '');
+                try {
+                    const replyData = JSON.parse(jsonStr);
+                    showTypingIndicator(false);
+                    appendMessage(replyData.text, 'received', replyData.context);
+                    sendSeenIfVisible();
+                } catch(e) {}
+                return;
+            }
+
+            if (data === 'WHISPER_CALL_TERMINATED') {
+                endCall(true); 
+                return;
+            }
+
+            if (data === 'WHISPER_SEEN') {
+                markLastSeen();
+                return;
+            }
+
+            if (data === 'WHISPER_TYPING_ON') {
+                showTypingIndicator(true);
+            } else if (data === 'WHISPER_TYPING_OFF') {
+                showTypingIndicator(false);
+            } else if (typeof data === 'string' && data.startsWith('WHISPER_AUD_')) {
+                showTypingIndicator(false);
+                appendAudioMessage(data.replace('WHISPER_AUD_', ''), 'received');
+                sendSeenIfVisible();
+            } else if (typeof data === 'string' && data.startsWith('WHISPER_IMG_')) {
+                showTypingIndicator(false);
+                appendMediaMessage(data.replace('WHISPER_IMG_', ''), 'image', 'received');
+                sendSeenIfVisible();
+            } else if (typeof data === 'string' && data.startsWith('WHISPER_VID_')) {
+                showTypingIndicator(false);
+                appendMediaMessage(data.replace('WHISPER_VID_', ''), 'video', 'received');
+                sendSeenIfVisible();
+            } else {
+                showTypingIndicator(false);
+                appendMessage(data, 'received');
+                sendSeenIfVisible();
+            }
+        }
+
+        function showTypingIndicator(show) {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.style.display = show ? 'block' : 'none';
+                if (show) chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }
+
+        function sendHello() {
+            if (!conn?.open) return;
+            conn.send("Hello 👋");
+            appendMessage("Hello 👋", 'sent');
+        }
+
+        function markSent() {
+            localUserSentMessage = true;
+            suggestionContainer.style.display = 'none';
+        }
+
+        async function startRecording() {
+            if (!conn?.open) return;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 64;
+                source.connect(analyser);
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        conn.send('WHISPER_AUD_' + reader.result);
+                        appendAudioMessage(reader.result, 'sent');
+                    };
+                    reader.readAsDataURL(audioBlob);
+                    stream.getTracks().forEach(t => t.stop());
+                };
+                mediaRecorder.start();
+                startTime = Date.now();
+                normalMode.style.display = 'none';
+                voiceMode.style.display = 'flex';
+                recordInterval = setInterval(() => {
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    timerDisplay.textContent = `${Math.floor(elapsed / 60)}:${Math.floor(elapsed % 60).toString().padStart(2, '0')}`;
+                    if (elapsed >= 60) stopRecording(true);
+                }, 100);
+                animateVisualizer();
+            } catch (err) { appendMessage("Mic access required.", 'system'); }
+        }
+
+        function animateVisualizer() {
+            if (!analyser) return;
+            animationFrame = requestAnimationFrame(animateVisualizer);
+            analyser.getByteFrequencyData(dataArray);
+            const bars = document.querySelectorAll('.v-bar');
+            bars.forEach((bar, i) => {
+                const val = dataArray[i % dataArray.length];
+                bar.style.height = `${Math.max(4, (val / 255) * 26)}px`;
+            });
+        }
+
+        function stopRecording(send) {
+            normalMode.style.display = 'flex';
+            voiceMode.style.display = 'none';
+            clearInterval(recordInterval);
+            cancelAnimationFrame(animationFrame);
+            if (audioContext) audioContext.close();
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                if (send) mediaRecorder.stop();
+                else { mediaRecorder.onstop = null; mediaRecorder.stop(); mediaRecorder.stream.getTracks().forEach(t => t.stop()); }
+            }
+        }
+
+        function appendAudioMessage(src, sender) {
+            if (sender === 'sent') markSent();
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${sender}`;
+            const container = document.createElement('div');
+            container.className = 'audio-bubble';
+            const playBtn = document.createElement('button');
+            playBtn.innerHTML = '▶';
+            const viz = document.createElement('div');
+            viz.className = 'playback-viz';
+            for(let i=0; i < 14; i++) {
+                const b = document.createElement('div');
+                b.className = 'pb-bar';
+                viz.appendChild(b);
+            }
+            const durationSpan = document.createElement('span');
+            durationSpan.className = 'audio-duration';
+            const audio = new Audio(src);
+            
+            const formatTime = (time) => {
+                const m = Math.floor(time / 60);
+                const s = Math.floor(time % 60).toString().padStart(2, '0');
+                return `${m}:${s}`;
+            };
+
+            audio.onloadedmetadata = () => {
+                const totalDur = isNaN(audio.duration) ? 0 : audio.duration;
+                durationSpan.textContent = `0:00 / ${formatTime(totalDur)}`;
+            };
+
+            audio.ontimeupdate = () => {
+                const current = formatTime(audio.currentTime);
+                const total = formatTime(audio.duration || 0);
+                durationSpan.textContent = `${current} / ${total}`;
+            };
+
+            audio.onended = () => {
+                playBtn.innerHTML = '▶';
+                const total = formatTime(audio.duration || 0);
+                durationSpan.textContent = `0:00 / ${total}`;
+            };
+
+            playBtn.onclick = () => {
+                if (audio.paused) { audio.play(); playBtn.innerHTML = '⏸'; }
+                else { audio.pause(); playBtn.innerHTML = '▶'; }
+            };
+            container.appendChild(playBtn);
+            container.appendChild(viz);
+            container.appendChild(durationSpan);
+            msgDiv.appendChild(container);
+            msgDiv.appendChild(createMetaElement(sender === 'sent'));
+
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) chatContainer.insertBefore(msgDiv, indicator);
+            else chatContainer.appendChild(msgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function appendMessage(text, type, replyContext = null) {
+            if (text === "") return;
+            if (type === 'sent') markSent();
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${type}`;
+            
+            // Double click to reply
+            msgDiv.ondblclick = () => {
+                initiateReply(text, type === 'sent' ? 'You' : 'Friend');
+            };
+
+            // Render Reply Context if exists
+            if (replyContext) {
+                const replyDiv = document.createElement('div');
+                replyDiv.className = 'reply-context';
+                replyDiv.innerHTML = `
+                    <span class="reply-sender">${replyContext.sender}</span>
+                    <span class="reply-text-preview">${replyContext.text}</span>
+                `;
+                replyDiv.onclick = (e) => { e.stopPropagation(); /* Scroll to msg could be added here */ };
+                msgDiv.appendChild(replyDiv);
+            }
+
+            const textNode = document.createTextNode(text);
+            msgDiv.appendChild(textNode);
+
+            if (type !== 'system') {
+                msgDiv.appendChild(createMetaElement(type === 'sent'));
+            }
+
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) chatContainer.insertBefore(msgDiv, indicator);
+            else chatContainer.appendChild(msgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function appendMediaMessage(src, type, sender) {
+            if (sender === 'sent') markSent();
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${sender}`;
+            msgDiv.style.padding = '5px';
+            const container = document.createElement('div');
+            container.className = 'media-container';
+            const el = document.createElement(type === 'image' ? 'img' : 'video');
+            el.src = src; el.className = 'media-content';
+            container.onclick = () => {
+                if (!el.classList.contains('revealed')) el.classList.add('revealed');
+                else showFullScreen(src, type);
+            };
+            container.appendChild(el);
+            msgDiv.appendChild(container);
+            msgDiv.appendChild(createMetaElement(sender === 'sent'));
+
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) chatContainer.insertBefore(msgDiv, indicator);
+            else chatContainer.appendChild(msgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function showFullScreen(src, type) {
+            const viewer = document.getElementById('media-viewer');
+            viewer.innerHTML = '';
+            const el = document.createElement(type === 'image' ? 'img' : 'video');
+            el.src = src; if(type === 'video') el.controls = true;
+            viewer.appendChild(el); viewer.style.display = 'flex';
+        }
+        
+        // --- REPLY LOGIC ---
+        function initiateReply(text, sender) {
+            currentReplyContext = { text: text, sender: sender };
+            replyPreviewSender.textContent = `Replying to ${sender}`;
+            replyPreviewText.textContent = text;
+            replyPreviewBar.style.display = 'flex';
+            msgInput.focus();
+        }
+
+        function cancelReply() {
+            currentReplyContext = null;
+            replyPreviewBar.style.display = 'none';
+        }
+
+        msgInput.addEventListener('input', () => {
+            if (!conn?.open) return;
+            conn.send('WHISPER_TYPING_ON');
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                conn.send('WHISPER_TYPING_OFF');
+            }, 2000);
         });
-        async function triggerPwaInstall() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    availablePromos = availablePromos.filter(p => p.id !== "pwa");
-                    updatePromoUI();
+
+        msgInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && msgInput.value.trim() !== '' && conn?.open) {
+                const val = msgInput.value.trim();
+                conn.send('WHISPER_TYPING_OFF');
+                
+                if (currentReplyContext) {
+                    const payload = {
+                        text: val,
+                        context: currentReplyContext
+                    };
+                    conn.send('WHISPER_REP_JSON_' + JSON.stringify(payload));
+                    appendMessage(val, 'sent', currentReplyContext);
+                    cancelReply();
+                } else {
+                    conn.send(val);
+                    appendMessage(val, 'sent');
                 }
-                deferredPrompt = null;
+                
+                msgInput.value = '';
+                clearTimeout(typingTimeout);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file || !conn?.open) return;
+            const reader = new FileReader();
+            const type = file.type.startsWith('video/') ? 'video' : 'image';
+            reader.onload = (ev) => {
+                conn.send((type === 'video' ? 'WHISPER_VID_' : 'WHISPER_IMG_') + ev.target.result);
+                appendMediaMessage(ev.target.result, type, 'sent');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function toggleConfirm(show) { confirmModal.style.display = show ? 'flex' : 'none'; }
+        function exitChatroom() { location.reload(); }
+        function copyCode() {
+            const code = document.getElementById('my-code').textContent;
+            if(code === "..." || code === "COPIED") return;
+            navigator.clipboard.writeText(code);
+            const original = code;
+            document.getElementById('my-code').textContent = "COPIED";
+            setTimeout(() => document.getElementById('my-code').textContent = original, 1000);
+        }
+
+        // --- FEATURE 3 JS: COPY LINK & AUTO-CONNECT ---
+        function copyLink() {
+            const code = document.getElementById('my-code').textContent;
+            if(code === "..." || code === "COPIED") return;
+            
+            const url = window.location.href.split('?')[0] + '?code=' + code;
+            
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.getElementById('link-share-btn');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<span style="font-size: 1.2rem;">✓</span>';
+                setTimeout(() => btn.innerHTML = originalHTML, 1500);
+            });
+        }
+
+        function toggleHelp(show) {
+            const helpView = document.getElementById('instruction-view');
+            if (show) {
+                helpView.style.display = 'flex';
+            } else {
+                helpView.style.display = 'none';
             }
         }
+
+        // --- FEATURE: SECURITY & RESTRICTIONS ---
+        // 1. Disable Right-Click Context Menu
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // 2. Disable Keyboard Shortcuts (Save, View Source, Inspect, Print)
+        document.addEventListener('keydown', function(e) {
+            // Cmd/Ctrl + S (Save)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+                e.preventDefault();
+            }
+            // Cmd/Ctrl + U (View Source)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'u' || e.key === 'U')) {
+                e.preventDefault();
+            }
+            // F12 (Dev Tools)
+            if (e.key === 'F12') {
+                e.preventDefault();
+            }
+            // Cmd/Ctrl + Shift + I/J/C (Dev Tools)
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i', 'I', 'j', 'J', 'c', 'C'].includes(e.key)) {
+                e.preventDefault();
+            }
+            // Cmd/Ctrl + P (Print)
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+                e.preventDefault();
+            }
+        });
 
         window.onload = () => {
             initPeer();
-            const urlCode = new URLSearchParams(window.location.search).get('code');
-            if(urlCode) peerCodeInput.value = urlCode.toUpperCase();
-            updatePromoUI();
-            resetPromoInterval();
+            
+            // Auto-Connect Logic
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if(code) {
+                document.getElementById('peer-code-input').value = code; 
+            }
         };
     </script>
 </body>
 </html>
-
